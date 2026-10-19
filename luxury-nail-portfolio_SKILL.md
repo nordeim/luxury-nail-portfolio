@@ -5,15 +5,16 @@ description: >-
   TypeScript strict + Tailwind CSS 4 single-file SPA clone (functional superset) of
   aurelia-nail-artistry-demo.base44.app. Captures the verified reference-parity
   doctrine, the Tailwind v4 trap log, the zero-server persistence contracts, the
-  test-gate architecture (69 unit + 162 e2e), anti-patterns, debugging procedures,
+  test-gate architecture (75 unit + 166 e2e), anti-patterns, debugging procedures,
   and lessons learned. Use when extending, debugging, onboarding, or replicating
   this codebase.
 version: 1.0.0
 last_updated: 2026-10-19
 project_state: >-
-  COMPLETE AND GREEN — typecheck ✓ lint ✓ 69/69 unit ✓ 162/162 e2e ✓
-  production build (407.9 KB single file) ✓ dev-server capture sweep (13 verified
-  PNGs) ✓ two commits pushed to origin/main via the SSH wrapper.
+  COMPLETE AND GREEN — typecheck ✓ lint ✓ 75/75 unit ✓ 166/166 e2e ✓
+  production build (437 KB single file) ✓ review rounds R1-R2 executed (theme
+  switching remediated: two-state toggle + pre-paint script; axe 4.14 Label-in-Name
+  fixed) ✓ capture sweeps through R2 (20 verified PNGs) ✓ pushed to origin/main.
 ---
 
 # Aurelia Nail Artistry — Codebase Engineering SKILL
@@ -82,11 +83,11 @@ Versions are read from `package.json` (exact, lockfile-pinned via `package-lock.
 | Styling | `tailwindcss` + `@tailwindcss/vite` | 4.1.17 | **CSS-first**: `@theme` + `@custom-variant` in `src/index.css`; there is **no `tailwind.config.js`** |
 | Routing | custom (`src/lib/router.tsx`) | — | `pushState`/`popstate`, case-insensitive `matchPath`, ~107 LOC, zero deps |
 | State | React Context + `localStorage` | — | `aurelia:v1` namespace (`src/lib/storage-key.ts`), seed-on-mount pattern |
-| Icons | `lucide-react` | 1.55.0 | Inline SVGs; the only runtime dependency besides react/clsx/tailwind-merge |
+| Icons | `lucide-react` | 1.59.0 | Inline SVGs; the only runtime dependency besides react/clsx/tailwind-merge |
 | Utilities | `clsx` / `tailwind-merge` | 2.1.1 / 3.4.0 | Wrapped by `src/utils/cn.ts` |
-| Unit tests | `vitest` | 4.1.11 | Node env (`vitest.config.ts`); 6 files + 1 colocated seam spec, **69 tests** |
-| E2E | `@playwright/test` | 1.64.0 | **162 tests**; projects `chromium` (Desktop Chrome) + `mobile` (iPhone 14 on chromium engine — avoids a WebKit install) |
-| A11y e2e | `@axe-core/playwright` | 4.13.0 | axe smoke on all public routes |
+| Unit tests | `vitest` | 4.1.12 | Node env (`vitest.config.ts`); 7 files + 1 colocated seam spec, **75 tests** |
+| E2E | `@playwright/test` | 1.64.1 | **166 tests**; projects `chromium` (Desktop Chrome) + `mobile` (iPhone 14 on chromium engine — avoids a WebKit install) |
+| A11y e2e | `@axe-core/playwright` | 4.14.0 | axe smoke on all public routes |
 | Lint | `eslint` + `typescript-eslint` + react-hooks/react-refresh | 9.39.5 / 8.71.2 | Flat config `eslint.config.js` |
 | DB tooling | `node:sqlite` (stdlib) | Node ≥ 22.5 | Zero-dep; **the SPA itself needs only Node ≥ 20** |
 
@@ -185,7 +186,7 @@ One entrance animation (`animate-fade-up`, used by the booking confirmation), co
 | Export | Role | Pins |
 |---|---|---|
 | `BrandMark` | Wordmark link, `text-hero-ink` over the hero / `text-foreground` elsewhere | Theme-aware via props, not media queries |
-| `ThemeToggle` | Cycles light → dark → system; `aria-label="Color theme: <mode>. Activate to switch."`; `data-theme-mode`/`data-theme-dark` hooks for tests | Applies theme via `src/lib/theme.ts`; tracks `<html>` class with a MutationObserver for icon state |
+| `ThemeToggle` | **Two-state** light ↔ dark switch (R2-01): every click flips the RESOLVED theme via `nextThemeMode`; fresh profiles start in OS-following `system` mode until the first click pins a choice; `aria-label="Color theme: <mode>. Activate to switch."`; `data-theme-mode`/`data-theme-dark` hooks for tests | Applies theme via `src/lib/theme.ts`; tracks `<html>` class with a MutationObserver for icon state; the pre-paint head script in `index.html` owns first-paint theming (`data-theme-applied`, e2e-pinned) |
 | `Header` | Transparent-over-hero on `/` (`absolute`, `text-hero-ink`) → solid `bg-background` with hairline on other routes; desktop nav `aria-label="Primary"` (hidden below `md`); mobile row with ThemeToggle + `Open menu` button | Route change closes the menu (`useEffect [path]`) |
 | `MobileMenu` | `createPortal(document.body)` full-screen `role="dialog"` labelled "Site menu"; focus trap + Escape + scroll lock; gap-based nav (`aria-label="Mobile"`); `AccountMenuLink` renders Account/Sign In by session state | ADR-005 structural fixes (§4.5 traps 1–2); focus returns to opener on close |
 | `Footer` | Cream/dark band with Navigate + Connect columns; `role="contentinfo"` | Consumes band tokens — the e2e dark-inversion assertion target |
@@ -273,7 +274,7 @@ Numbered for reference; each entry has bitten this codebase or its predecessor.
 11. **#11 Plain `@theme` with `.dark` overrides** — value-inlined tokens freeze light values into utilities; dark mode stops working for those classes. Fix: `@theme inline` + CSS variables.
 12. **#12 Success flows without navigation** — a register/login handler that only toasts leaves the URL on the auth route (and the user confused). Fix: `navigate("/", { replace: true })` on success (reference-verified behavior).
 13. **#13 Static gold text** — fails AA at eyebrow sizes on cream. Fix: muted-foreground; gold for hover/borders only.
-14. **#14 Copying e2e totals into docs as constants and forgetting them** — 69/162 appear in README/AGENTS/PAD/SKILL; move them together.
+14. **#14 Copying e2e totals into docs as constants and forgetting them** — 75/166 appear in README/AGENTS/PAD/SKILL; move them together.
 15. **#15 `test.use()` inside a test body** — illegal in Playwright; use `page.setViewportSize()` for per-test viewports.
 16. **#16 Editing one of the two DB-resolution mirrors** — `db-path.ts` and `db-setup.mjs` must move together or the pinned tests fail.
 
@@ -290,7 +291,7 @@ Numbered for reference; each entry has bitten this codebase or its predecessor.
 | `db:setup` → "OUTSIDE the repo root" error | Ambient `DATABASE_URL` (relative, escaping) | `env -u DATABASE_URL npm run db:setup` |
 | `db:setup` writes to a parent workspace | Ambient absolute `DATABASE_URL` override | Same — then check the stderr notice logic if intentional |
 | "node:sqlite is unavailable" | Node < 22.5 for db scripts | Use Node ≥ 22.5 for `db:*` (SPA still needs ≥ 20) |
-| Toggle click doesn't set `html.dark` | Fresh profile is in **system** mode: click 1 = system→light | Two clicks (or seed `aurelia.theme`); specs seed `light` when pinning light→dark |
+| Toggle click doesn't flip the page | Pre-R2-01 bundle (fixed `system → light → dark` order made click 1 a no-op on light OS) | Two-state `nextThemeMode` flips the RESOLVED theme — rebuild; the fresh-first-click e2e pin guards it |
 | Dark tokens flip but a section stays light | Component uses a static/hero token or a raw color | Consume semantic tokens only (`bg-background`, `text-foreground`, band tokens) |
 | `getByLabel('Password', { exact: true })` times out | Helper text aggregated into the accessible name | Move helper text out of `<label>`; add `aria-label` |
 | Register/login "does nothing" (URL unchanged) | Failure branch rendered (check `role="alert"`) or duplicate email | Read the alert; unique emails in tests use `Date.now()` |
@@ -317,8 +318,8 @@ Numbered for reference; each entry has bitten this codebase or its predecessor.
 ## 11. Pre-Ship Checklist
 
 ```bash
-env -u DATABASE_URL npm run verify     # typecheck → lint → 69 unit → build
-env -u DATABASE_URL npm run e2e        # 162 e2e vs the fresh build
+env -u DATABASE_URL npm run verify     # typecheck → lint → 75 unit → build
+env -u DATABASE_URL npm run e2e        # 166 e2e vs the fresh build
 env -u DATABASE_URL npm run db:setup   # containment audit + seed contract
 ```
 
@@ -327,7 +328,7 @@ env -u DATABASE_URL npm run db:setup   # containment audit + seed contract
 - [ ] No `space-y-*` + child `mt-*`; no backdrop-filter above fixed elements; no `*/` inside CSS comments
 - [ ] Form controls all have programmatic names; helper text outside labels
 - [ ] Viewport-sensitive e2e branches on `Open menu` visibility
-- [ ] Test totals (69/162) updated in README + AGENTS + PAD + this SKILL if moved
+- [ ] Test totals (75/166) updated in README + AGENTS + PAD + this SKILL if moved
 - [ ] Docs updated in the same commit for any contract change (root docs + this file)
 - [ ] Push via SSH wrapper to `main` only (key outside repo, `--dry-run` first, verify remote ref == HEAD)
 
@@ -419,12 +420,21 @@ useEffect(() => {
   const media = window.matchMedia("(prefers-color-scheme: dark)");
   const sync = () => applyTheme(resolveTheme(mode, media.matches));
   sync();
-  media.addEventListener("change", sync);       // live system-mode tracking
+  media.addEventListener("change", sync);       // live system-mode tracking (mode="system" only)
   return () => media.removeEventListener("change", sync);
 }, [mode]);
+
+const cycle = () => {
+  // Two-state switch (R2-01): flip the RESOLVED theme, not a fixed order -
+  // every activation is visible. First click pins an explicit choice.
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  const next = nextThemeMode(mode, resolveTheme(mode, media.matches));
+  setMode(next);
+  writeStoredMode(next);
+};
 ```
 
-*Why:* `system` mode must track the OS live (e2e-pinned via `emulateMedia`), and `applyTheme` owns the `<html>` class + `colorScheme`.
+*Why:* `system` mode must track the OS live until the first interaction (e2e-pinned via `emulateMedia`); `applyTheme` owns the `<html>` class + `colorScheme`; `nextThemeMode(mode, resolved) !== resolved` is the unit-pinned no-op impossibility invariant. First-paint theming is owned separately by the synchronous head script in `index.html` (`data-theme-applied`), which mirrors the same stored-mode contract.
 
 ### 15.5 React-safe programmatic fill (test tooling)
 
@@ -589,8 +599,8 @@ Full records with consequences and rejected alternatives: `Project_Architecture_
 
 | Suite | Files | Tests | Highlights |
 |---|---|---|---|
-| Vitest unit | 6 (`tests/*.test.ts`) + 1 colocated | **69** | booking seam · password contract + seed integrity · seo map · db-path rules · db-scripts subprocess + containment (clamp + notice) · sitemap projection |
-| Playwright e2e | 10 specs × 2 projects | **162** | smoke · **mobile-navigation (v4 trap pin)** · booking-flow (validation→confirmation→admin) · auth-flow · dark-mode (flip/persistence/system) · visual-parity (computed styles) · a11y-smoke (axe + structure + keyboard) · seo-head (incl. SPA-nav titles + JSON-LD) · pwa-manifest · password-hash (round-trip, no-plaintext, session persistence) |
+| Vitest unit | 7 (`tests/*.test.ts`) + 1 colocated | **75** | booking seam · **theme contract (`resolveTheme` + two-state `nextThemeMode` no-op invariant)** · password contract + seed integrity · seo map · db-path rules · db-scripts subprocess + containment (clamp + notice) · sitemap projection |
+| Playwright e2e | 11 specs × 2 projects | **166** | smoke · **mobile-navigation (v4 trap pin)** · booking-flow (validation→confirmation→admin) · auth-flow · **dark-mode (first-click flip + pre-paint script + persistence + system honoring)** · visual-parity (computed styles) · a11y-smoke (axe + structure + keyboard) · seo-head (incl. SPA-nav titles + JSON-LD) · pwa-manifest · password-hash (round-trip, no-plaintext, session persistence) |
 
 Run: `npm run test` / `npm run e2e`. Totals are quoted in README/AGENTS/PAD/this file — move them together (§9 #14).
 

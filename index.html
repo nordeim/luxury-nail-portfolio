@@ -4,6 +4,38 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Aurelia Nail Artistry</title>
+    <script>
+      /* Pre-paint theme resolution (R2-01, remediation-plan-aurelia-r2.md).
+         The token blocks in index.css are light under :root; without this
+         synchronous script a dark user (stored dark choice, or dark OS with
+         no choice yet) paints light first and flips after React mounts — a
+         flash that reads as "theme switching doesn't work". Mirrors the
+         store's readStoredMode contract: any stored value that is not
+         "light" resolves through the OS preference. data-theme-applied is
+         test-facing evidence that this script ran before hydration. */
+      (function () {
+        try {
+          var stored = localStorage.getItem("aurelia.theme");
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) {
+            document.documentElement.classList.add("dark");
+            document.documentElement.style.colorScheme = "dark";
+          } else {
+            document.documentElement.style.colorScheme = "light";
+          }
+          document.documentElement.setAttribute(
+            "data-theme-applied",
+            dark ? "dark" : "light"
+          );
+        } catch (e) {
+          /* No storage / private mode: the :root light tokens stay — the
+             SPA re-applies the resolved theme on mount (theme.ts). */
+        }
+      })();
+    </script>
     <!--
       Static head set. Shape mirrors the live reference's head (measured
       2026-10-19): description, OG + Twitter set, per-route title map handled

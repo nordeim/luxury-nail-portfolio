@@ -10,8 +10,8 @@ Read this file fresh before working. Full engineering reference: `Project_Archit
 |---|---|
 | `npm run dev` | Vite dev server on :5173 |
 | `npm run verify` | The local CI: `typecheck && lint && test && build` — run before every commit |
-| `npm run e2e` | Playwright (162 tests, 2 projects) against `vite preview` of the **production build** — rebuild first if `dist/` is stale |
-| `npm run test` | Vitest unit suite (69 tests, node env) |
+| `npm run e2e` | Playwright (166 tests, 2 projects) against `vite preview` of the **production build** — rebuild first if `dist/` is stale |
+| `npm run test` | Vitest unit suite (75 tests, node env) |
 | `npm run db:setup` | Materialize + seed `db/custom.db` — **requires Node ≥ 22.5** (`node:sqlite`) |
 | `npx playwright test tests/e2e/<spec>.spec.ts --project=mobile` | One spec, one profile |
 
@@ -23,7 +23,7 @@ Read this file fresh before working. Full engineering reference: `Project_Archit
 - **Layer rule:** pages → store/router → pure seams (`src/lib/booking.ts`, `password.ts`, `seo.ts`, `theme.ts`, `db-path.ts`) → data (`src/data/studio.ts`) → tokens (`src/index.css`). Layer-2 modules never import from Layer 4 — that's what keeps them unit-testable in bare Node.
 - **`src/data/studio.ts` is the single catalog source** (services, gallery works, time slots, nav links, demo users). Never duplicate its data.
 - **Routing:** custom history router (`src/lib/router.tsx`), case-insensitive `matchPath` (reference behavior: `/Gallery` ≡ `/gallery`). Pages never touch `window.history` directly.
-- **Build:** `vite build` → one `dist/index.html` (~408 KB). `prebuild` regenerates `public/sitemap.xml` + `robots.txt`.
+- **Build:** `vite build` → one `dist/index.html` (~437 KB). `prebuild` regenerates `public/sitemap.xml` + `robots.txt`; the served file carries the pre-paint theme script (R2-01) — do not strip `<head>` scripts when templating.
 
 ## Tailwind v4 traps (non-negotiable pins — full report: `docs/Tailwind-V4-Validation-Report.md`)
 
@@ -37,7 +37,7 @@ Read this file fresh before working. Full engineering reference: `Project_Archit
 ## Design-system rules
 
 - **Gold is hover/border only** — it fails WCAG AA at eyebrow sizes on cream. Static gold text is forbidden (contrast sweep remediation, e2e-pinned).
-- Toggle cycle is **light → dark → system** with fresh profiles starting at **system** (OS-preference respect is the shipped default). Theme persists under `aurelia.theme`.
+- **Theme toggle is two-state** — every activation flips the RESOLVED theme (`nextThemeMode(mode, resolved) !== resolved`, unit-pinned); fresh profiles start in OS-following `system` mode until the first click pins a choice. The pre-paint head script in `index.html` applies the stored/OS theme before first paint — don't remove it (e2e-pinned via `data-theme-applied`). Theme persists under `aurelia.theme`.
 - Animations: one entrance (`animate-fade-up`); `prefers-reduced-motion` disables it. No new keyframes without a reduced-motion story.
 
 ## Testing quirks (things the suite will punish you for)
@@ -49,7 +49,8 @@ Read this file fresh before working. Full engineering reference: `Project_Archit
 - **Viewports have different affordances.** Desktop nav (`aria-label="Primary"`) is `hidden` on mobile; the menu is the `Site menu` dialog with a `Mobile` nav. Any e2e touching nav/account links must branch on `getByRole("button", { name: "Open menu" }).isVisible()`. The suite encodes this — copy the pattern.
 - **Demo-user digests are test-pinned.** `tests/password.test.ts` verifies the seeds in `src/data/studio.ts` against the documented passwords. Never hand-write a digest — generate it (`hashPassword`) or compute `sha256(salt:password)`.
 - **Auth redirects to `/`** on success (reference behavior), `replace: true`. Post-login assertions should target the viewport-aware session affordance.
-- Unit suite: 69 · e2e: 162. If your change moves those totals, the README/AGENTS/PAD counts move with it.
+- Unit suite: 75 · e2e: 166. If your change moves those totals, the README/AGENTS/PAD counts move with it.
+- After a lockfile bump that moves Playwright, run `npx playwright install chromium` before the first e2e run (the cache pins a headless-shell revision per version).
 
 ## Tooling contracts
 

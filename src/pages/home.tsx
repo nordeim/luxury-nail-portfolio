@@ -76,7 +76,12 @@ export function HomePage() {
               <Link
                 href="/gallery"
                 className="group relative block overflow-hidden"
-                aria-label={`${work.name} — ${CATEGORY_LABELS[work.category]}`}
+                /* Label-in-Name (WCAG 2.5.3): the accessible name must
+                   contain the visible caption text ("{name} {category}" —
+                   the touch caption is visible below sm, where axe 4.14
+                   enforces the rule). An em-dash here breaks token
+                   containment and fails label-content-name-mismatch. */
+                aria-label={`${work.name} ${CATEGORY_LABELS[work.category]}`}
               >
                 <img
                   src={work.image}
@@ -97,6 +102,13 @@ export function HomePage() {
                 {/* Touch devices get no hover — caption stays available. */}
                 <div className="mt-3 flex items-baseline justify-between sm:hidden">
                   <span className="font-display text-xl">{work.name}</span>
+                  {/* Whitespace text node (axe 4.14 label-content-name-mismatch
+                      root cause, R2-02): JSX strips inter-element whitespace,
+                      fusing the caption for word segmentation into
+                      "…EssenceEditorial" — a token no aria-label can contain.
+                      The space is invisible in the flex row; it restores the
+                      "name category" token sequence for Label-in-Name. */}
+                  {" "}
                   <span className="eyebrow text-muted-foreground">{CATEGORY_LABELS[work.category]}</span>
                 </div>
               </Link>

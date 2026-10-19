@@ -83,6 +83,7 @@ No AI features observed → none implemented. Nothing to stub. (Recorded so the 
 | Imagery | Base44-hosted photography (proprietary) | **Independently generated** editorial nail-art images (AI-generated for this project, committed to `public/images/`) | IP boundary 6: no asset laundering | Verified |
 | Legal/policy pages | None on reference | None added | Reference parity first; superset scope stays app-functional | Assumed |
 | "Edit with Base44" badge | Floating platform badge | Excluded | Platform chrome, not design | Verified |
+| Theme toggle cycle | n/a (no toggle on reference) | **Two-state light ↔ dark** — every activation flips the RESOLVED theme; fresh profiles start in OS-following `system` mode until the first interaction pins a choice; pre-paint head script applies the stored/OS theme before first paint | Remediation R2-01 (`docs/remediation-plan-aurelia-r2.md`): the shipped fixed-order cycle's first click was a visual no-op on light-OS machines, and the missing pre-paint application produced a light flash for dark users — both read as "switching doesn't work" | Verified |
 | Copyright year | "© 2024" | "© 2025" | Production-grade currency | Assumed |
 | Routes | `/Gallery` hrefs observed (case-insensitive router) | Canonical lowercase paths (`/gallery`…) | Clean URLs; reference normalizes anyway | Reasoned |
 | PORTFOLIO nav item | href `/Home` (lands on home) | `/#portfolio` scroll-to-section on landing | Same observable outcome, explicit anchor | Reasoned |

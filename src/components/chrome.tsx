@@ -10,7 +10,7 @@ import { ArrowRight, Menu, Moon, Sun, X } from "lucide-react";
 import { FOOTER_NAV, NAV_LINKS, STUDIO } from "@/data/studio";
 import { Link, useRouter } from "@/lib/router";
 import { useStore } from "@/lib/store";
-import { applyTheme, readStoredMode, resolveTheme, writeStoredMode } from "@/lib/theme";
+import { applyTheme, nextThemeMode, readStoredMode, resolveTheme, writeStoredMode } from "@/lib/theme";
 import { cn } from "@/utils/cn";
 import type { ThemeMode } from "@/types";
 
@@ -50,8 +50,13 @@ export function ThemeToggle({ className }: { className?: string }) {
   }, [mode]);
 
   const cycle = () => {
-    const order: ThemeMode[] = ["light", "dark", "system"];
-    const next = order[(order.indexOf(mode) + 1) % order.length];
+    // Two-state switch: the next mode is the opposite of what is RESOLVED on
+    // screen, so every activation is a visible flip (R2-01). "system" stays
+    // the fresh-profile initial mode until this first click pins a choice;
+    // the media listener above keeps following the OS only while mode is
+    // "system" — after the click the explicit choice is authoritative.
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const next = nextThemeMode(mode, resolveTheme(mode, media.matches));
     setMode(next);
     writeStoredMode(next);
   };

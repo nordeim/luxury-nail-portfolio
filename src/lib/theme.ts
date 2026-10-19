@@ -11,6 +11,21 @@ export function resolveTheme(mode: ThemeMode, systemPrefersDark: boolean): "ligh
   return mode;
 }
 
+/**
+ * Next mode for a toggle activation.
+ *
+ * The toggle is a TWO-STATE light ↔ dark switch: "system" is the fresh-profile
+ * initial mode (honored, OS-reactive) until the first interaction, which pins
+ * an explicit choice. The next state is the OPPOSITE OF WHAT IS RESOLVED ON
+ * SCREEN — not a fixed order — so every click is a visible flip. The shipped
+ * fixed order (system → light → dark) made the first click a visual no-op on
+ * light-OS machines (remediation R2-01, docs/remediation-plan-aurelia-r2.md);
+ * the invariant `nextThemeMode(mode, resolved) !== resolved` is unit-pinned.
+ */
+export function nextThemeMode(_current: ThemeMode, resolved: "light" | "dark"): ThemeMode {
+  return resolved === "dark" ? "light" : "dark";
+}
+
 export function applyTheme(theme: "light" | "dark"): void {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");

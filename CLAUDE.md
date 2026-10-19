@@ -15,7 +15,7 @@ Working agreements:
 ## 2. Six-Phase Workflow (per task)
 
 1. **ANALYZE** — read the touched seams' pins first (`src/index.css` trap comments, `AGENTS.md § Tailwind v4 traps`). Check `docs/reference-investigation.md` before changing anything user-visible.
-2. **PLAN** — name the files, the seams, and which tests move (unit 69 / e2e 162 totals).
+2. **PLAN** — name the files, the seams, and which tests move (unit 75 / e2e 166 totals).
 3. **VALIDATE** — for contract-level changes (tokens, DB resolution, auth), state the before/after contract explicitly before coding.
 4. **IMPLEMENT** — small diffs; layer rule (pages → store → seams → data → tokens) never inverts.
 5. **VERIFY** — `npm run verify` + affected e2e specs; computed-style assertions are ground truth over eyeballing.
@@ -25,7 +25,7 @@ Working agreements:
 
 - No `space-y-*` with child `mt-*` (v4 specificity trap); mobile menu is a portal + focus trap; gap-based spacing only.
 - e2e-asserted colors are hex literals in `index.css` (hsl drifts 1 unit); gold is hover/border only; hero tokens never flip.
-- Fresh theme state is **system**; cycle is light → dark → system.
+- Theme toggle is **two-state** (every click flips the resolved theme); fresh profiles start in OS-following `system` mode; the pre-paint head script in `index.html` owns first-paint theming (e2e-pinned).
 - Every form control has a programmatic accessible name; `<legend>` doesn't label; helper text stays out of `<label>`.
 - Native constraints must not shadow unit-pinned custom validation messages.
 - Never hand-write a password digest — `tests/password.test.ts` verifies the seeds.
@@ -34,8 +34,8 @@ Working agreements:
 ## 4. Verification Loop
 
 ```bash
-npm run verify                                   # typecheck → lint → 69 unit → build
-npm run e2e                                      # 162 e2e vs production preview (rebuild first)
+npm run verify                                   # typecheck → lint → 75 unit → build
+npm run e2e                                      # 166 e2e vs production preview (rebuild first)
 npx playwright test tests/e2e/visual-parity.spec.ts   # parity gate alone
 env -u DATABASE_URL npm run db:setup             # tooling DB at <repoRoot>/db/custom.db
 ```

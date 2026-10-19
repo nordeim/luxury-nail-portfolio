@@ -1,6 +1,6 @@
 # Aurelia Nail Artistry — Luxury Nail Portfolio
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![React](https://img.shields.io/badge/React-19.2-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6) ![Tailwind](https://img.shields.io/badge/TailwindCSS-4.1-38bdf8) ![Vite](https://img.shields.io/badge/Vite-7.3-646cff) ![Tests](https://img.shields.io/badge/tests-69%20unit%20%2B%20162%20e2e-brightgreen)
+![Version](https://img.shields.io/badge/version-1.0.0-blue) ![React](https://img.shields.io/badge/React-19.3-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6) ![Tailwind](https://img.shields.io/badge/TailwindCSS-4.3-38bdf8) ![Vite](https://img.shields.io/badge/Vite-7.3-646cff) ![Tests](https://img.shields.io/badge/tests-75%20unit%20%2B%20166%20e2e-brightgreen)
 
 A production-grade marketing + booking SPA for a luxury nail studio — a visual and functional superset of `aurelia-nail-artistry-demo.base44.app`, built as a single-file React application with a verified-parity editorial design, a public appointment-request workflow, hashed-credential accounts, an admin booking surface, and a dark-mode theme system the reference doesn't ship.
 
@@ -14,25 +14,25 @@ A production-grade marketing + booking SPA for a luxury nail studio — a visual
 | **Public booking workflow** | Name/email/phone + service + date + time + notes; native HTML5 baseline for required fields, custom domain rules for future-dates, closed Sun/Mon, slot whitelist; form is *replaced* by the "Request Received" confirmation (reference contract) |
 | **Booking persistence + admin surface** | Requests persist to the local store, attach to the signed-in user when one exists, and surface in a role-gated `/admin/bookings` console with cancel/status actions |
 | **Accounts (superset)** | Salted WebCrypto SHA-256 digests (`s1$salt$digest`), register → session → sign-out → sign-in, `/account` booking history, protected-route redirect |
-| **Dark mode (superset)** | Light → dark → system toggle with `localStorage` persistence; `@custom-variant dark` class strategy; semantic tokens flip, hero photography treatment stays light-on-image in both themes |
+| **Dark mode (superset)** | Two-state light ↔ dark toggle — every activation visibly flips the theme; fresh profiles start in OS-following `system` mode until the first interaction; a pre-paint head script applies the stored/OS theme before first paint (no flash); `@custom-variant dark` class strategy; semantic tokens flip, hero photography stays light-on-image in both themes |
 | **Mobile navigation** | Portal-rendered full-screen menu overlay with focus trap, Escape/scroll-lock, and gap-based spacing (Tailwind v4 `space-y` engine trap pinned by e2e) |
 | **SEO + PWA** | Per-route title/description/OG contract, JSON-LD (`NailSalon` + `WebSite`), generated sitemap/robots, web manifest + icons |
 | **Zero-server persistence** | Browser-only demo store (`localStorage`, `aurelia:v1` namespace) + a zero-dependency `node:sqlite` tooling contract that materializes `db/custom.db` |
 
 ## Architecture
 
-**Single-file SPA**: `vite build` emits one self-contained `dist/index.html` (~408 KB, ~107 KB gzip) via `vite-plugin-singlefile` — no server runtime, deployable to any static host.
+**Single-file SPA**: `vite build` emits one self-contained `dist/index.html` (~437 KB, ~116 KB gzip) via `vite-plugin-singlefile` — no server runtime, deployable to any static host.
 
 | Layer | Technology | Version | Purpose |
 |---|---|---|---|
-| UI runtime | React | 19.2 | Function components, hooks only |
+| UI runtime | React | 19.3 | Function components, hooks only |
 | Language | TypeScript | 5.9 (strict) | `noUnusedLocals`, `erasableSyntaxOnly` |
 | Build | Vite + vite-plugin-singlefile | 7.3 / 2.3 | One-file production build |
-| Styling | Tailwind CSS | 4.1 (CSS-first) | `@theme inline` tokens, no config file |
+| Styling | Tailwind CSS | 4.3 (CSS-first) | `@theme inline` tokens, no config file |
 | Routing | Custom history router (`src/lib/router.tsx`) | — | `pushState`-based, ~107 LOC, case-insensitive matching |
 | State | React Context + `localStorage` (`src/lib/store.tsx`) | — | Session, bookings, toasts, theme |
-| Unit tests | Vitest | 4.1 | 69 tests, node env |
-| E2E tests | Playwright | 1.64 | 162 tests, chromium + iPhone-14 profiles, against `vite preview` |
+| Unit tests | Vitest | 4.1 | 75 tests, node env |
+| E2E tests | Playwright | 1.64 | 166 tests, chromium + iPhone-14 profiles, against `vite preview` |
 | DB tooling | `node:sqlite` (`scripts/db-setup.mjs`) | Node ≥ 22.5 | Materializes `DATABASE_URL` as a real SQLite file |
 
 ```mermaid
@@ -87,10 +87,10 @@ npm run dev                   # vite dev server on http://localhost:5173
 
 ```bash
 npm run verify   # typecheck && lint && test (unit) && build
-npm run e2e      # 162 Playwright tests against the production preview (builds first)
+npm run e2e      # 166 Playwright tests against the production preview (builds first)
 ```
 
-Expected: typecheck silent · eslint silent · `69 passed` · `dist/index.html ~408 kB` · `162 passed`.
+Expected: typecheck silent · eslint silent · `75 passed` · `dist/index.html ~437 kB` · `166 passed`.
 
 **Demo accounts** (seeded in `src/data/studio.ts`, digests verified by unit tests):
 
@@ -115,8 +115,8 @@ npx playwright test tests/e2e/mobile-navigation.spec.ts        # single spec
 npx playwright test --project=mobile                           # iPhone-14 profile only
 ```
 
-- **Unit (69)** — booking validation seam, password hash round-trip **including demo-seed digest verification**, SEO route map, db-path resolution contract, db-scripts containment audit, sitemap projection.
-- **E2E (162)** — smoke, **mobile navigation (the Tailwind v4 `space-y` regression pin)**, booking flow (validation → confirmation → admin surface), auth flow, dark mode (class flip + token values + persistence), visual parity (computed-style assertions on stable selectors), a11y (axe + structure), SEO head, PWA manifest, password hash round-trip. Desktop Chrome + iPhone-14 (chromium engine) profiles; e2e runs against the production build, never the dev server.
+- **Unit (75)** — booking validation seam, **theme contract (`resolveTheme` + the two-state `nextThemeMode` with the no-op impossibility invariant)**, password hash round-trip **including demo-seed digest verification**, SEO route map, db-path resolution contract, db-scripts containment audit, sitemap projection.
+- **E2E (166)** — smoke, **mobile navigation (the Tailwind v4 `space-y` regression pin)**, booking flow (validation → confirmation → admin surface), auth flow, **dark mode (first-click flip + pre-paint script + token values + persistence)**, visual parity (computed-style assertions on stable selectors), a11y (axe + structure), SEO head, PWA manifest, password hash round-trip. Desktop Chrome + iPhone-14 (chromium engine) profiles; e2e runs against the production build, never the dev server.
 - `playwright.config.ts` auto-starts its own `vite preview` — no manual server management.
 
 ## Design System
@@ -138,11 +138,12 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 | [`docs/reference-investigation.md`](docs/reference-investigation.md) | Evidence-labelled observation of the live reference (routes, copy, tokens, auth, booking probe) |
 | [`docs/implementation-plan.md`](docs/implementation-plan.md) | Stack decision record, feature sequence, test plan, risks |
 | [`docs/remediation-plan-aurelia-r1.md`](docs/remediation-plan-aurelia-r1.md) | Review-round R1: audit findings, live parity sweep evidence, validation ledger (versioned planning docs) |
+| [`docs/remediation-plan-aurelia-r2.md`](docs/remediation-plan-aurelia-r2.md) | Review-round R2: theme-switching root-cause analysis + fixes (pre-paint script, two-state cycle), axe 4.14 Label-in-Name isolation |
 | [`Project_Architecture_Document.md`](Project_Architecture_Document.md) | Full engineering reference: ADRs, topology, layer model, data architecture, security |
 | [`AGENTS.md`](AGENTS.md) | Agent rulebook: commands, conventions, framework traps |
 | [`CLAUDE.md`](CLAUDE.md) | Session-playbook for AI coding agents |
 | [`docs/Tailwind-V4-Validation-Report.md`](docs/Tailwind-V4-Validation-Report.md) | The five v4 engine traps and the validated remediation patterns |
-| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round R1 comparison set (14–17, incl. fresh reference evidence); prior-project captures under `legacy-homenest/` |
+| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round comparison sets (14–17 R1, 18–20 R2 on the fixed build); prior-project captures under `legacy-homenest/` |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Static-host deployment notes |
 | [`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`](docs/how-to-git-push-using-ssh-wrapper_SKILL.md) | Deploy-key push procedure (`ssh_git_wrapper_v3.py`) |
 
@@ -152,12 +153,14 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 |---|---|
 | `db:setup` writes outside the repo / fails with "OUTSIDE the repo root" | An ambient `DATABASE_URL` is overriding the repo contract. Run `env -u DATABASE_URL npm run db:setup` (the containment audit refuses relative URLs that escape the repo root by design). |
 | `db:setup` errors "node:sqlite is unavailable" | The db scripts need Node ≥ 22.5 (`node:sqlite`). The SPA itself runs on Node ≥ 20. |
-| Dark mode doesn't flip on first click | By design: a fresh profile starts in **system** mode — one click goes system → light, two clicks reach dark. The e2e suite seeds `light` when it pins the light → dark segment. |
+| Theme: page flashes light before going dark | Served HTML is missing the pre-paint head script (hand-edited head) — restore the synchronous `<head>` script from the repo's `index.html`; the e2e `pre-paint` pin guards it. |
+| Theme toggle's first click does nothing visible | Pre-R2-01 bundle (the old `system → light → dark` cycle) — rebuild from the current tree; the two-state cycle makes every click flip the resolved theme. |
+| Playwright reports missing browser executables after an install | The lockfile bumped Playwright and needs a newer headless shell — run `npx playwright install chromium` before the first e2e run. |
 | Playwright can't find a "Password"/"Account" control | Viewport-dependent affordances: the desktop nav (`Primary`) is hidden on mobile — assert via the mobile menu overlay (`Site menu` dialog). The suite encodes this pattern. |
 | Unit test fails on `.env` contract | The gate reads `.env` when present, else `.env.example` — restore the pinned `DATABASE_URL="file:../db/custom.db"` line. |
 
 ## Status
 
-Complete and green as of 2026-10-19: reference investigation ✓ · full clone implemented ✓ · 69/69 unit ✓ · 162/162 e2e ✓ · typecheck/lint/build ✓ · dev-server capture sweep ✓ · all four root docs + distilled skill generated ✓.
+Complete and green as of 2026-10-19 (review round R2): reference investigation ✓ · full clone implemented ✓ · **75/75 unit ✓ · 166/166 e2e ✓** · typecheck/lint/build ✓ · **theme switching remediated (R2-01) + axe 4.14 Label-in-Name fixed (R2-02)** ✓ · dev-server capture sweeps ✓ · all four root docs + distilled skill + DEPLOYMENT guide generated ✓.
 
 No license file is bundled — all rights reserved by the repository owner.

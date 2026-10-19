@@ -10,6 +10,7 @@
 #### Revision Block — v1.0 (Initial Aurelia Blueprint)
 
 - `[SR]` v1.0 written against the completed Aurelia clone (commit `1439bce`): all sections verified against the working tree and the green gate chain (typecheck, lint, 69/69 unit, 162/162 e2e, build).
+- `[SR-R2]` review round R2 (2026-10-19): owner dependency bump audited (Tailwind 4.3.3, React 19.3.1, Playwright 1.64.1, axe 4.14 — all gates green on the new set); theme contract amended per `docs/remediation-plan-aurelia-r2.md` (two-state toggle + pre-paint head script; R2-01) and the axe 4.14 Label-in-Name fix (R2-02). Totals now 75/75 unit, 166/166 e2e, build ~437 KB. §1 stack table, §4.1 theme row and §5.3 reflect the amended contract.
 - `[CA]` ADR-002 extended with the containment-audit amendment (session 3 remediation): the DB can no longer silently materialize outside the repo root.
 - `[SYN]` Design-token doctrine locked to **measured sRGB hex pins** after two 1-unit hsl→rgb drift defects (light `#f5f3ef`, dark `#13110f`) were caught by the computed-style parity gate.
 
@@ -50,16 +51,16 @@ The reference observation was performed under the replicate-web-app methodology 
 
 | Layer | Technology | Version | Key Rationale |
 |---|---|---|---|
-| UI runtime | React | 19.2.6 | Function components + hooks only; no class components, no `forwardRef` |
+| UI runtime | React | 19.3.1 | Function components + hooks only; no class components, no `forwardRef` |
 | Language | TypeScript (strict) | 5.9.3 | `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`, `verbatimModuleSyntax` |
-| Build | Vite | 7.3.2 | Fast dev server; the SPA ships as a **single HTML file** (ADR-003) |
-| Single-file plugin | vite-plugin-singlefile | 2.3.0 | Inlines JS+CSS into `dist/index.html` (~408 KB / ~107 KB gzip) |
-| Styling | Tailwind CSS (CSS-first) | 4.1.17 | v4 `@theme inline` + `@custom-variant`; **no `tailwind.config.js`** (ADR-004) |
+| Build | Vite | 7.3.7 | Fast dev server; the SPA ships as a **single HTML file** (ADR-003) |
+| Single-file plugin | vite-plugin-singlefile | 2.3.4 | Inlines JS+CSS into `dist/index.html` (~437 KB / ~116 KB gzip) |
+| Styling | Tailwind CSS (CSS-first) | 4.3.3 | v4 `@theme inline` + `@custom-variant`; **no `tailwind.config.js`** (ADR-004) |
 | Routing | Custom history router | — (~107 LOC) | Zero-dep `pushState` router with case-insensitive route matching (ADR-006) |
 | State | React Context + localStorage | — | `aurelia:v1` namespaced store: session, bookings, theme, toasts (ADR-001) |
-| Icons | lucide-react | 1.55.0 | Tree-shaken inline SVGs |
-| Unit tests | Vitest | 4.1.11 | Node env; pure-seam coverage (booking, password, seo, db-path) |
-| E2E tests | Playwright | 1.64.0 | Two projects (Desktop Chrome + iPhone 14 on chromium engine); runs against `vite preview` |
+| Icons | lucide-react | 1.59.0 | Tree-shaken inline SVGs |
+| Unit tests | Vitest | 4.1.12 | Node env; pure-seam coverage (booking, theme, password, seo, db-path) |
+| E2E tests | Playwright | 1.64.1 | Two projects (Desktop Chrome + iPhone 14 on chromium engine); runs against `vite preview` |
 | DB tooling | `node:sqlite` (stdlib) | Node ≥ 22.5 | Zero-dependency materialization of the ADR-002 `DATABASE_URL` contract |
 | Lint | ESLint (flat config) + typescript-eslint | 9.39.5 / 8.71.2 | `eslint.config.js`; react-hooks + react-refresh rules |
 
@@ -86,7 +87,7 @@ Versions are read from `package.json` (lockfile-pinned via `package-lock.json`).
 **ADR-003: Single-file production build (`vite-plugin-singlefile`)**
 
 - **Context:** The deliverable must deploy to any static host (including sandboxed preview hosts) with zero asset pipeline at the edge, and the e2e suite must test **exactly what ships**.
-- **Decision:** `vite build` inlines all JS and CSS into one `dist/index.html` (~408 KB, ~107 KB gzip, no external chunk requests). The e2e suite runs against `vite preview` of that artifact, never against the dev server.
+- **Decision:** `vite build` inlines all JS and CSS into one `dist/index.html` (~437 KB, ~116 KB gzip at the R2 dependency set, no external chunk requests). The e2e suite runs against `vite preview` of that artifact, never against the dev server.
 - **Rationale:** Removes the last class of "works in dev, differs in prod" drift for a no-backend app; makes deployment a single-file copy.
 - **Consequences:** (+) Trivial deploys; e2e fidelity. (−) No HTTP-level code splitting (irrelevant at this size); every change requires a rebuild before e2e.
 - **Alternatives rejected:** Standard multi-chunk build (deploy complexity without benefit here); SSR frameworks (violates ADR-001).
@@ -307,7 +308,7 @@ The SPA persists to `localStorage` under the `aurelia:v1` namespace as one JSON 
 | `users` | `User[]` | id, email (normalized lowercase), name, role (`admin` \| `customer`), `passwordHash` (s1$ digest — **never plaintext**) |
 | `sessionUserId` | `string \| null` | pointer into `users`; the entire session model |
 | `bookings` | `BookingRequest[]` | id (`bk-<ts>-<rand>`), name, email, phone, serviceId, date (ISO), timeSlot, notes, userId, status (`received` \| `confirmed` \| `cancelled`), createdAt |
-| `theme` | stored separately under `aurelia.theme` | `light` \| `dark` \| `system` (default `system`) |
+| `theme` | stored separately under `aurelia.theme` | `light` \| `dark` \| `system` — `system` is the fresh-profile initial mode (OS-following); the first toggle interaction pins an explicit `light`/`dark` (two-state contract, R2-01). A pre-paint head script resolves the same contract before first paint. |
 
 Seeded on first run from `src/data/studio.ts` (services catalog is compile-time; only users/bookings persist). Duplicate-registration is rejected on normalized email equality.
 
@@ -362,7 +363,7 @@ Fonts load via Google Fonts `display=swap`; fallbacks are metric-declared in `@t
 
 ### 5.3 Component Primitives
 
-No component library. Hand-rolled primitives in `chrome.tsx` (Header, ThemeToggle, MobileMenu, Footer, PageShell, Toasts) and per-page sections. `cn()` (clsx + tailwind-merge) governs conditional classes. Buttons: `eyebrow` uppercase + arrow glyph with hover translate; focus rings are visible (keyboard e2e).
+No component library. Hand-rolled primitives in `chrome.tsx` (Header, ThemeToggle, MobileMenu, Footer, PageShell, Toasts) and per-page sections. `cn()` (clsx + tailwind-merge) governs conditional classes. Buttons: `eyebrow` uppercase + arrow glyph with hover translate; focus rings are visible (keyboard e2e). `ThemeToggle` is a **two-state light ↔ dark switch** (R2-01): every activation flips the RESOLVED theme (`nextThemeMode` seam, unit-pinned no-op impossibility invariant); fresh profiles start in OS-following `system` mode until the first click pins a choice; the pre-paint head script in `index.html` applies the same contract before first paint (`data-theme-applied`, e2e-pinned).
 
 ### 5.4 Motion / Animation
 
@@ -438,7 +439,7 @@ No numeric thresholds configured. The de-facto rule: **every Layer-2 seam and ev
 npm run build    # prebuild: node scripts/generate-sitemap.mjs → vite build
 ```
 
-Output: **`dist/index.html`** (~408 KB, ~107 KB gzip) — one file, no chunks, no service worker. Serve it from any static host; SPA fallback is unnecessary (single document). `public/*` (images, manifest, icons, sitemap, robots) deploys alongside.
+Output: **`dist/index.html`** (~437 KB, ~116 KB gzip at the R2 dependency set) — one file, no chunks, no service worker. Serve it from any static host; SPA fallback is unnecessary (single document). `public/*` (images, manifest, icons, sitemap, robots) deploys alongside.
 
 ### 8.2 Environment Variables
 
@@ -499,7 +500,7 @@ TypeScript strict + `erasableSyntaxOnly` (no enums/namespaces/parameter properti
 | LOW | No hosted CI | Gates run locally only | Accepted for this repo; §7.4 is the contract |
 | INFO | Dark mode is a designed superset (reference ships none) | None — documented deviation, e2e-pinned | Closed |
 
-No CRITICAL/HIGH issues are open: the gate chain (typecheck, lint, 69/69 unit, 162/162 e2e) is green at the time of writing.
+No CRITICAL/HIGH issues are open: the gate chain (typecheck, lint, 75/75 unit, 166/166 e2e) is green at the time of writing.
 
 ---
 

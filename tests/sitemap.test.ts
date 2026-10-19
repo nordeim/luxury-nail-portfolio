@@ -26,6 +26,7 @@ interface SitemapEntry {
   loc: string;
   changefreq: string;
   priority: string;
+  lastmod: string;
 }
 
 function parseSitemap(xml: string): SitemapEntry[] {
@@ -35,7 +36,8 @@ function parseSitemap(xml: string): SitemapEntry[] {
     const loc = /<loc>\s*([^<]*?)\s*<\/loc>/.exec(block)?.[1];
     const changefreq = /<changefreq>\s*([^<]*?)\s*<\/changefreq>/.exec(block)?.[1] ?? "";
     const priority = /<priority>\s*([^<]*?)\s*<\/priority>/.exec(block)?.[1] ?? "";
-    if (loc) entries.push({ loc, changefreq, priority });
+    const lastmod = /<lastmod>\s*([^<]*?)\s*<\/lastmod>/.exec(block)?.[1] ?? "";
+    if (loc) entries.push({ loc, changefreq, priority, lastmod });
   }
   return entries;
 }
@@ -80,5 +82,23 @@ describe("public/sitemap.xml", () => {
     expect(SITEMAP).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(SITEMAP.match(/<urlset /g)?.length).toBe(1);
     expect(SITEMAP.endsWith("</urlset>\n")).toBe(true);
+  });
+
+  it("carries a W3C lastmod on every URL (R3-01 — template parity)", () => {
+    // The ecommerce-store template's sitemap carries lastModified; the
+    // generator projects the latest content-commit date onto every entry.
+    expect(entries.length).toBeGreaterThan(0);
+    for (const entry of entries) {
+      expect(entry.lastmod).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it("derives lastmod from content, never from the future", () => {
+    const values = new Set(entries.map((entry) => entry.lastmod));
+    // One content date for the whole static site (deterministic per tree).
+    expect(values.size).toBe(1);
+    const [lastmod] = values;
+    const today = new Date().toISOString().slice(0, 10);
+    expect(BigInt(lastmod.replaceAll("-", ""))).toBeLessThanOrEqual(BigInt(today.replaceAll("-", "")));
   });
 });

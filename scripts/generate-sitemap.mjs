@@ -13,6 +13,14 @@
  * refreshed artifacts; tests/sitemap.test.ts gates the committed output
  * against the real catalog (R8-03).
  *
+ * <lastmod> (R3-01, parity with the ecommerce-store template's sitemap.ts
+ * which carries lastModified): every entry gets the latest Y-m-d commit
+ * date across content-affecting paths (catalog, pages, tokens, head,
+ * imagery) — deterministic per content state, never a build timestamp
+ * (that would churn per rebuild and train crawlers to distrust it). When
+ * git metadata is unavailable (tarball builds), <lastmod> is omitted
+ * entirely — a valid sitemap either way; the skip is logged loudly.
+ *
  * Posture (superset vs the live reference, probed 2026-10-12):
  *   - private surfaces (/admin, /account, /cart, /checkout,
  *     /order-success) are DISALLOWED and EXCLUDED — the reference's
@@ -22,6 +30,7 @@
  *   - priorities/frequencies follow the ecommerce-store template's
  *     src/app/sitemap.ts.
  */
+import { execSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -52,6 +61,32 @@ const STATIC_ROUTES = [
 
 const DISALLOWED = ["/admin", "/account", "/reset"];
 
+// Paths whose last change dates the site's content (add a path when its
+// edits should refresh the sitemap's lastmod).
+const CONTENT_PATHS = [
+  "src/data/studio.ts",
+  "src/pages/",
+  "src/index.css",
+  "index.html",
+  "public/images/",
+];
+
+/** Latest Y-m-d committer date across CONTENT_PATHS, or null when git
+ *  metadata is unavailable (non-git checkout) — callers omit <lastmod>. */
+function contentLastmod() {
+  try {
+    const out = execSync(
+      `git log -1 --format=%cs -- ${CONTENT_PATHS.map((p) => JSON.stringify(p)).join(" ")}`,
+      { cwd: ROOT, stdio: ["ignore", "pipe", "ignore"] },
+    )
+      .toString()
+      .trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : null;
+  } catch {
+    return null;
+  }
+}
+
 function robotsXml() {
   const lines = [
     "User-agent: *",
@@ -64,7 +99,7 @@ function robotsXml() {
   return lines.join("\n");
 }
 
-function sitemapXml() {
+function sitemapXml(lastmod) {
   const urls = STATIC_ROUTES.map((route) => ({ loc: `${SITE_URL}${route.path}`, ...route }));
   const body = urls
     .map(
@@ -73,6 +108,7 @@ function sitemapXml() {
         `        <loc>${escapeXml(url.loc)}</loc>\n` +
         `        <changefreq>${url.changefreq}</changefreq>\n` +
         `        <priority>${url.priority}</priority>\n` +
+        (lastmod ? `        <lastmod>${lastmod}</lastmod>\n` : "") +
         "    </url>",
     )
     .join("\n");
@@ -84,6 +120,13 @@ function sitemapXml() {
   );
 }
 
+const lastmod = contentLastmod();
+if (!lastmod) {
+  console.error("seo: git metadata unavailable — sitemap written WITHOUT <lastmod>");
+}
 writeFileSync(join(ROOT, "public", "robots.txt"), robotsXml());
-writeFileSync(join(ROOT, "public", "sitemap.xml"), sitemapXml());
-console.log(`seo: wrote public/robots.txt + public/sitemap.xml (${SITE_URL}) — ${STATIC_ROUTES.length} static URLs`);
+writeFileSync(join(ROOT, "public", "sitemap.xml"), sitemapXml(lastmod));
+console.log(
+  `seo: wrote public/robots.txt + public/sitemap.xml (${SITE_URL}) — ${STATIC_ROUTES.length} static URLs` +
+    (lastmod ? `, lastmod ${lastmod}` : ", no lastmod"),
+);

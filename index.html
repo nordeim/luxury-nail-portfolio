@@ -61,16 +61,28 @@
     />
     <!-- PWA manifest (superset — the reference ships no manifest). -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <!-- OpenGraph (reference head shape) -->
+    <!-- iOS home-screen icon (R3-05) — the manifest icons do not cover
+         Safari's apple-touch-icon; generated from the same monogram. -->
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <!-- OpenGraph (reference head shape; R3-02 adds the image dimensions
+         and alt so social crawlers can size the card without fetching and
+         decoding the JPEG). -->
     <meta property="og:title" content="Aurelia Nail Artistry" />
     <meta
       property="og:description"
       content="Aurelia Nail Artistry — bespoke luxury nail design in Los Angeles. Editorial, bridal, and avant-garde nail artistry by Aurelia Chen."
     />
     <meta property="og:image" content="http://localhost:4173/images/hero.jpg" />
+    <meta property="og:image:width" content="1344" />
+    <meta property="og:image:height" content="768" />
+    <meta
+      property="og:image:alt"
+      content="Moody editorial photograph of a manicured hand with sculptural nail art"
+    />
     <meta property="og:url" content="http://localhost:4173/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Aurelia Nail Artistry" />
+    <meta property="og:locale" content="en_US" />
     <!-- Twitter card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Aurelia Nail Artistry" />
@@ -79,6 +91,10 @@
       content="Aurelia Nail Artistry — bespoke luxury nail design in Los Angeles. Editorial, bridal, and avant-garde nail artistry by Aurelia Chen."
     />
     <meta name="twitter:image" content="http://localhost:4173/images/hero.jpg" />
+    <meta
+      name="twitter:image:alt"
+      content="Moody editorial photograph of a manicured hand with sculptural nail art"
+    />
     <meta name="twitter:url" content="http://localhost:4173/" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -108,7 +124,16 @@
           "postalCode": "90069",
           "addressCountry": "US"
         },
-        "openingHours": "Tu-Sa 10:00-18:00"
+        "openingHours": "Tu-Sa 10:00-18:00",
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            "opens": "10:00",
+            "closes": "18:00"
+          }
+        ],
+        "sameAs": ["https://www.instagram.com/aurelia.nails"]
       }
     </script>
     <script type="application/ld+json">

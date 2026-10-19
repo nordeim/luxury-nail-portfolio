@@ -36,6 +36,9 @@ export interface RouteMeta {
   canonicalUrl: string;
   /** Absolute og:url — query preserved. */
   ogUrl: string;
+  /** Robots directive — unknown paths are soft-404s and must not be
+   *  indexed (R3-04); every known route stays indexable. */
+  robots: string;
 }
 
 const STATIC_TITLES: Record<string, string> = {
@@ -71,17 +74,24 @@ function safeDecode(value: string): string {
 
 export function buildRouteMeta(path: string): RouteMeta {
   const { pathname, search } = splitLocation(path);
-  const staticTitle = STATIC_TITLES[pathname.toLowerCase()];
+  const normalized = pathname.toLowerCase();
+  const staticTitle = STATIC_TITLES[normalized];
   const title = staticTitle
     ? staticTitle === SUFFIX
       ? staticTitle
       : `${staticTitle} | ${SUFFIX}`
     : `Page Not Found | ${SUFFIX}`;
 
+  // The router renders /home as the landing page (case-insensitive matchPath,
+  // Verified). Two reachable URLs rendering one page get ONE canonical — the
+  // alias merges into "/" instead of competing as duplicate content (R3-03).
+  const canonicalPath = normalized === "/home" ? "/" : pathname;
+
   return {
     title,
     description: SITE_DESCRIPTION,
-    canonicalUrl: `${SITE_URL}${pathname}`,
-    ogUrl: `${SITE_URL}${pathname}${search}`,
+    canonicalUrl: `${SITE_URL}${canonicalPath}`,
+    ogUrl: `${SITE_URL}${canonicalPath}${search}`,
+    robots: staticTitle ? "index, follow" : "noindex, follow",
   };
 }

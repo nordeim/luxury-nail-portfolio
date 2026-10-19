@@ -64,6 +64,46 @@ test.describe("per-route head contract", () => {
     });
   }
 
+  test("the /home alias canonicalizes to / on the served artifact (R3-03)", async ({ page }) => {
+    await page.goto("/home");
+    await expect(page).toHaveTitle("Aurelia Nail Artistry");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `${SITE_URL}/`);
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `${SITE_URL}/`);
+  });
+
+  test("unknown paths ship noindex (soft-404 contract — R3-04)", async ({ page }) => {
+    await page.goto("/nonexistent-page");
+    await expect(page).toHaveTitle("Page Not Found | Aurelia Nail Artistry");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, follow");
+    // Known routes stay indexable.
+    await page.goto("/gallery");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
+  });
+
+  test("static head completes the social-card meta (R3-02)", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1344");
+    await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "768");
+    await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
+      "content",
+      /manicured hand|nail/i,
+    );
+    await expect(page.locator('meta[name="twitter:image:alt"]')).toHaveAttribute(
+      "content",
+      /manicured hand|nail/i,
+    );
+    await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute("content", "en_US");
+    // viteSingleFile's base:'./' rewrites root-absolute hrefs to relative
+    // (documented in pwa-manifest.spec) — assert the real contract: the
+    // link points at the icon file and the file is actually served.
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
+      "href",
+      /icon-180\.png$/,
+    );
+    const iconResponse = await page.request.get(`${SITE_URL}/icon-180.png`);
+    expect(iconResponse.status()).toBe(200);
+  });
+
   test("SPA navigation updates the title per route (client-side route change)", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Aurelia Nail Artistry");
@@ -94,5 +134,14 @@ test.describe("per-route head contract", () => {
     const salon = nodes.find((node) => node["@type"] === "NailSalon");
     expect(salon?.telephone).toBe("+1-310-555-0123");
     expect(salon?.address?.addressLocality).toBe("Los Angeles");
+    // R3-06: catalog-derived enrichment — the documented Instagram handle and
+    // the structured form of the studio hours (Tu–Sa 10:00–18:00).
+    expect(salon?.sameAs).toContain("https://www.instagram.com/aurelia.nails");
+    const spec = salon?.openingHoursSpecification?.[0];
+    expect(spec?.opens).toBe("10:00");
+    expect(spec?.closes).toBe("18:00");
+    expect(spec?.dayOfWeek).toContain("Tuesday");
+    expect(spec?.dayOfWeek).toContain("Saturday");
+    expect(spec?.dayOfWeek).not.toContain("Sunday");
   });
 });

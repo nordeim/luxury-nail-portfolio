@@ -11,6 +11,7 @@
 
 - `[SR]` v1.0 written against the completed Aurelia clone (commit `1439bce`): all sections verified against the working tree and the green gate chain (typecheck, lint, 69/69 unit, 162/162 e2e, build).
 - `[SR-R2]` review round R2 (2026-10-19): owner dependency bump audited (Tailwind 4.3.3, React 19.3.1, Playwright 1.64.1, axe 4.14 — all gates green on the new set); theme contract amended per `docs/remediation-plan-aurelia-r2.md` (two-state toggle + pre-paint head script; R2-01) and the axe 4.14 Label-in-Name fix (R2-02). Totals now 75/75 unit, 166/166 e2e, build ~437 KB. §1 stack table, §4.1 theme row and §5.3 reflect the amended contract.
+- `[SR-R3]` review round R3 (2026-10-19): sitemap/SEO audit vs the ecommerce-store template + the live reference (`docs/remediation-plan-aurelia-r3.md`). SEO-head contract extended: sitemap `<lastmod>` (git-derived, deterministic per content state), soft-404 `noindex, follow` via a `RouteMeta.robots` field upserted by HeadManager, `/home` alias canonicalizes to `/`, complete social-card meta (og:image width/height/alt, twitter:image:alt, og:locale), `apple-touch-icon` + manifest maskable entry, NailSalon JSON-LD `sameAs` + `openingHoursSpecification`. Totals now 79/79 unit, 172/172 e2e, build ~438 KB.
 - `[CA]` ADR-002 extended with the containment-audit amendment (session 3 remediation): the DB can no longer silently materialize outside the repo root.
 - `[SYN]` Design-token doctrine locked to **measured sRGB hex pins** after two 1-unit hsl→rgb drift defects (light `#f5f3ef`, dark `#13110f`) were caught by the computed-style parity gate.
 
@@ -413,7 +414,7 @@ Single entrance animation (`animate-fade-up` on the booking confirmation), color
 
 ### 7.2 Test Patterns
 
-- **Seam-first unit tests:** booking rules (injectable `today`), password contract **+ demo-seed integrity**, seo route map, db-path resolution, db-scripts (real subprocess execution against temp DBs), sitemap projection.
+- **Seam-first unit tests:** booking rules (injectable `today`), password contract **+ demo-seed integrity**, seo route map (titles, canonical/og:url split, **/home alias canonical, soft-404 robots**), db-path resolution, db-scripts (real subprocess execution against temp DBs), sitemap projection (**incl. the git-derived lastmod contract**).
 - **Computed-style parity gate** (`visual-parity.spec.ts`): ground-truth assertions on stable selectors (h1 family/size, body bg, footer bg, button styles) — the gate that caught both hsl-drift defects. Family-level, not pixel-diff, so font swap doesn't flake.
 - **Structural regression pins:** `mobile-navigation.spec.ts` pins the ADR-005 trap fixes (computed gap spacing, focus trap, Escape, link navigation); `dark-mode.spec.ts` pins the class flip, token values, persistence, and system-mode behavior; `a11y-smoke.spec.ts` runs axe on all public routes + landmark/label/keyboard structure.
 - **Viewport-aware assertions:** desktop nav affordances (`Primary`) vs mobile menu (`Site menu` dialog) are asserted per project — the suite encodes the pattern rather than skipping mobile.
@@ -439,7 +440,7 @@ No numeric thresholds configured. The de-facto rule: **every Layer-2 seam and ev
 npm run build    # prebuild: node scripts/generate-sitemap.mjs → vite build
 ```
 
-Output: **`dist/index.html`** (~437 KB, ~116 KB gzip at the R2 dependency set) — one file, no chunks, no service worker. Serve it from any static host; SPA fallback is unnecessary (single document). `public/*` (images, manifest, icons, sitemap, robots) deploys alongside.
+Output: **`dist/index.html`** (~438 KB, ~116.5 KB gzip at the R3 dependency set) — one file, no chunks, no service worker. Serve it from any static host; SPA fallback is unnecessary (single document). `public/*` (images, manifest, icons, sitemap, robots) deploys alongside.
 
 ### 8.2 Environment Variables
 
@@ -500,7 +501,7 @@ TypeScript strict + `erasableSyntaxOnly` (no enums/namespaces/parameter properti
 | LOW | No hosted CI | Gates run locally only | Accepted for this repo; §7.4 is the contract |
 | INFO | Dark mode is a designed superset (reference ships none) | None — documented deviation, e2e-pinned | Closed |
 
-No CRITICAL/HIGH issues are open: the gate chain (typecheck, lint, 75/75 unit, 166/166 e2e) is green at the time of writing.
+No CRITICAL/HIGH issues are open: the gate chain (typecheck, lint, 79/79 unit, 172/172 e2e) is green at the time of writing.
 
 ---
 

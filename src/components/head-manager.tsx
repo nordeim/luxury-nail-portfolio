@@ -9,10 +9,12 @@ import { buildRouteMeta } from "@/lib/seo";
  * this component merely writes what `buildRouteMeta` returns:
  *   - document.title — the reference's per-route title map (verified live),
  *     extended to every clone route.
- *   - meta description, canonical link, og/twitter title+description+url.
+ *   - meta description, robots, canonical link, og/twitter title+description+url.
  *
  * The static fallbacks in index.html cover first paint and no-JS crawlers;
- * this effect takes over on every route change (including popstate).
+ * this effect takes over on every route change (including popstate). The
+ * robots upsert flips unknown paths to "noindex, follow" (R3-04 soft-404
+ * contract) — the static head default stays "index, follow".
  */
 
 function upsertMeta(selector: string, create: () => HTMLMetaElement, content: string): void {
@@ -47,6 +49,11 @@ export function HeadManager() {
       () => document.createElement("meta"),
       meta.description,
     );
+    upsertMeta('meta[name="robots"]', () => {
+      const el = document.createElement("meta");
+      el.setAttribute("name", "robots");
+      return el;
+    }, meta.robots);
     upsertMeta('meta[property="og:title"]', () => {
       const el = document.createElement("meta");
       el.setAttribute("property", "og:title");

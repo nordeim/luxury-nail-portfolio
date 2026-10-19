@@ -11,10 +11,12 @@ description: >-
 version: 1.0.0
 last_updated: 2026-10-19
 project_state: >-
-  COMPLETE AND GREEN — typecheck ✓ lint ✓ 75/75 unit ✓ 166/166 e2e ✓
-  production build (437 KB single file) ✓ review rounds R1-R2 executed (theme
+  COMPLETE AND GREEN — typecheck ✓ lint ✓ 79/79 unit ✓ 172/172 e2e ✓
+  production build (438 KB single file) ✓ review rounds R1-R3 executed (theme
   switching remediated: two-state toggle + pre-paint script; axe 4.14 Label-in-Name
-  fixed) ✓ capture sweeps through R2 (20 verified PNGs) ✓ pushed to origin/main.
+  fixed; sitemap lastmod + SEO hardening: soft-404 noindex, /home alias canonical,
+  social-card meta, icon surfaces, JSON-LD enrichment) ✓ capture sweeps through R3
+  (23 verified PNGs) ✓ pushed to origin/main.
 ---
 
 # Aurelia Nail Artistry — Codebase Engineering SKILL
@@ -76,17 +78,17 @@ Versions are read from `package.json` (exact, lockfile-pinned via `package-lock.
 
 | Layer | Technology | Version | Critical note |
 |---|---|---|---|
-| UI runtime | `react` / `react-dom` | 19.2.6 / 19.2.7 | Function components + hooks only; no `forwardRef`, no class components |
+| UI runtime | `react` / `react-dom` | 19.3.1 | Function components + hooks only; no `forwardRef`, no class components |
 | Language | `typescript` | 5.9.3 | strict + `noUnusedLocals` + `erasableSyntaxOnly` + `verbatimModuleSyntax` (`tsconfig.json`) |
-| Build | `vite` | 7.3.2 | Dev on :5173; preview on :4173 |
-| Single-file | `vite-plugin-singlefile` | 2.3.0 | Inlines JS+CSS → `dist/index.html` (~407.9 KB / ~106.9 KB gzip) |
-| Styling | `tailwindcss` + `@tailwindcss/vite` | 4.1.17 | **CSS-first**: `@theme` + `@custom-variant` in `src/index.css`; there is **no `tailwind.config.js`** |
+| Build | `vite` | 7.3.7 | Dev on :5173; preview on :4173 |
+| Single-file | `vite-plugin-singlefile` | 2.3.4 | Inlines JS+CSS → `dist/index.html` (~438 KB / ~116.5 KB gzip; its `base: './'` rewrites root-absolute hrefs to relative — see pwa-manifest.spec) |
+| Styling | `tailwindcss` + `@tailwindcss/vite` | 4.3.3 | **CSS-first**: `@theme` + `@custom-variant` in `src/index.css`; there is **no `tailwind.config.js`** |
 | Routing | custom (`src/lib/router.tsx`) | — | `pushState`/`popstate`, case-insensitive `matchPath`, ~107 LOC, zero deps |
 | State | React Context + `localStorage` | — | `aurelia:v1` namespace (`src/lib/storage-key.ts`), seed-on-mount pattern |
 | Icons | `lucide-react` | 1.59.0 | Inline SVGs; the only runtime dependency besides react/clsx/tailwind-merge |
-| Utilities | `clsx` / `tailwind-merge` | 2.1.1 / 3.4.0 | Wrapped by `src/utils/cn.ts` |
-| Unit tests | `vitest` | 4.1.12 | Node env (`vitest.config.ts`); 7 files + 1 colocated seam spec, **75 tests** |
-| E2E | `@playwright/test` | 1.64.1 | **166 tests**; projects `chromium` (Desktop Chrome) + `mobile` (iPhone 14 on chromium engine — avoids a WebKit install) |
+| Utilities | `clsx` / `tailwind-merge` | 2.1.1 / 3.7.0 | Wrapped by `src/utils/cn.ts` |
+| Unit tests | `vitest` | 4.1.12 | Node env (`vitest.config.ts`); 7 files + 1 colocated seam spec, **79 tests** |
+| E2E | `@playwright/test` | 1.64.1 | **172 tests**; projects `chromium` (Desktop Chrome) + `mobile` (iPhone 14 on chromium engine — avoids a WebKit install) |
 | A11y e2e | `@axe-core/playwright` | 4.14.0 | axe smoke on all public routes |
 | Lint | `eslint` + `typescript-eslint` + react-hooks/react-refresh | 9.39.5 / 8.71.2 | Flat config `eslint.config.js` |
 | DB tooling | `node:sqlite` (stdlib) | Node ≥ 22.5 | Zero-dep; **the SPA itself needs only Node ≥ 20** |
@@ -179,7 +181,7 @@ One entrance animation (`animate-fade-up`, used by the booking confirmation), co
 
 ## 5. Component Architecture & Patterns
 
-**Inventory:** 2 component files (`chrome.tsx` 361 lines, `head-manager.tsx`), 9 page files, 10 lib modules, 1 data module, 1 types module — ~5,163 source lines total. All components are function components; there are no `"use client"` directives (no server runtime) and no HOCs.
+**Inventory:** 2 component files (`chrome.tsx` 366 lines, `head-manager.tsx`), 9 page files, 10 lib modules, 1 data module, 1 types module — ~2,965 source lines total. All components are function components; there are no `"use client"` directives (no server runtime) and no HOCs.
 
 ### 5.1 The chrome (`src/components/chrome.tsx`)
 
@@ -301,6 +303,8 @@ Numbered for reference; each entry has bitten this codebase or its predecessor.
 | e2e tests stale behavior | `dist/` older than `src/` | `npm run build` (e2e serves the build, never dev) |
 | Sitemap/robots stale after route change | prebuild regenerates only on build | `npm run seo:generate` + commit refreshed artifacts |
 | agent-browser probe returns fallback-sized/odd-token reads | `open --viewport` is a no-op in 0.39.0, and the page can be probed before async CSS (Base44 bundles late) applies | Always `set viewport <w> <h>` + re-open + settle (networkidle) before measuring; distrust the first computed read after a reload |
+| Sandbox background processes die between tool calls (`setsid`/`nohup`/`disown` all fail) | The sandbox reaps children per call | Run dev-server-dependent probes within a single call; re-start per call (`curl -s localhost:5173 || (npx vite &)`) |
+| Raw CSS-selector click on a theme/menu control no-ops at mobile viewports | CSS selectors match hidden DOM nodes — at mobile widths `button[data-theme-mode]` first matches the display-none desktop toggle (e2e is immune: `getByRole` uses the a11y tree = visible only) | Probe pattern: `[...document.querySelectorAll(sel)].find(x => x.offsetWidth)` before `.click()` |
 
 ### 10.2 The swallowed-`:root` incident (full procedure, §9 #02)
 
@@ -599,8 +603,8 @@ Full records with consequences and rejected alternatives: `Project_Architecture_
 
 | Suite | Files | Tests | Highlights |
 |---|---|---|---|
-| Vitest unit | 7 (`tests/*.test.ts`) + 1 colocated | **75** | booking seam · **theme contract (`resolveTheme` + two-state `nextThemeMode` no-op invariant)** · password contract + seed integrity · seo map · db-path rules · db-scripts subprocess + containment (clamp + notice) · sitemap projection |
-| Playwright e2e | 11 specs × 2 projects | **166** | smoke · **mobile-navigation (v4 trap pin)** · booking-flow (validation→confirmation→admin) · auth-flow · **dark-mode (first-click flip + pre-paint script + persistence + system honoring)** · visual-parity (computed styles) · a11y-smoke (axe + structure + keyboard) · seo-head (incl. SPA-nav titles + JSON-LD) · pwa-manifest · password-hash (round-trip, no-plaintext, session persistence) |
+| Vitest unit | 7 (`tests/*.test.ts`) + 1 colocated | **79** | booking seam · **theme contract (`resolveTheme` + two-state `nextThemeMode` no-op invariant)** · password contract + seed integrity · seo map (**incl. /home alias canonical + soft-404 noindex**) · db-path rules · db-scripts subprocess + containment (clamp + notice) · sitemap projection (**incl. git-derived lastmod contract**) |
+| Playwright e2e | 11 specs × 2 projects | **172** | smoke · **mobile-navigation (v4 trap pin)** · booking-flow (validation→confirmation→admin) · auth-flow · **dark-mode (first-click flip + pre-paint script + persistence + system honoring)** · visual-parity (computed styles) · a11y-smoke (axe + structure + keyboard) · seo-head (**SPA-nav titles + JSON-LD + social-card meta + alias canonical + soft-404 noindex**) · pwa-manifest · password-hash (round-trip, no-plaintext, session persistence) |
 
 Run: `npm run test` / `npm run e2e`. Totals are quoted in README/AGENTS/PAD/this file — move them together (§9 #14).
 

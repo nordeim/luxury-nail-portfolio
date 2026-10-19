@@ -1,7 +1,7 @@
 # Deployment Guide
 
 Aurelia Nail Artistry ships as a **single-file Vite SPA** (`dist/index.html`,
-~437 KB / ~116 KB gzip) with zero server and zero external services — one
+~438 KB / ~116.5 KB gzip) with zero server and zero external services — one
 static artifact plus its asset folder. This guide covers the supported
 production paths and the environment contract.
 
@@ -14,10 +14,16 @@ npm run build          # → dist/index.html (single file; SEO artifacts regener
 
 The `prebuild` hook runs `npm run seo:generate`
 (`scripts/generate-sitemap.mjs`), which rewrites `public/robots.txt` and
-`public/sitemap.xml` from the studio catalog before Vite bundles. Vite then
+`public/sitemap.xml` from the studio catalog before Vite bundles. Every
+sitemap URL carries a `<lastmod>` derived from the latest commit date
+across content-affecting paths (`src/data/studio.ts`, `src/pages/`,
+`src/index.css`, `index.html`, `public/images/`) — deterministic per
+content state, never a build timestamp. Building from a tarball (no git
+metadata) omits `<lastmod>` loudly instead of faking it. Vite then
 inlines all JS/CSS into `dist/index.html` (`vite-plugin-singlefile`) and
-copies `public/` — hero/studio/gallery imagery, PWA icons, `robots.txt`,
-`sitemap.xml` — alongside it. Never hand-edit the SEO artifacts:
+copies `public/` — hero/studio/gallery imagery, PWA icons (including the
+apple-touch and maskable variants), `robots.txt`, `sitemap.xml` —
+alongside it. Never hand-edit the SEO artifacts:
 `tests/sitemap.test.ts` gates the committed files against the catalog, and
 the build regenerates them anyway.
 
@@ -114,7 +120,13 @@ npm run build        # prebuild regenerates robots.txt + sitemap.xml with the ne
 The sync is test-gated: `tests/sitemap.test.ts` re-parses the committed
 artifacts against the catalog, so a catalog edit without regenerating
 fails the gate. `src/lib/seo.ts` reads `VITE_SITE_URL` at build time for
-per-route canonicals and JSON-LD.
+per-route canonicals and JSON-LD. Run the build from a git clone so the
+sitemap's `<lastmod>` reflects real content history.
+
+Note: `vite-plugin-singlefile` builds with `base: './'`, which rewrites
+root-absolute `href`s in the head (manifest, apple-touch-icon) to
+relative paths. That is by design and pinned in the e2e — do not
+"fix" the head back to absolute paths.
 
 ## 6. Updating
 
@@ -134,11 +146,13 @@ keys are namespaced and the pre-paint script reads the same key.
 ## 7. Verification checklist
 
 ```bash
-npm run verify && npm run e2e    # typecheck + lint + 75 unit + build + 166 E2E runs
+npm run verify && npm run e2e    # typecheck + lint + 79 unit + build + 172 E2E runs
 curl -s https://your-host/robots.txt        # admin disallowed + sitemap pointer
-curl -s https://your-host/sitemap.xml       # 7 static URLs at your origin
-curl -s https://your-host/manifest.webmanifest # valid PWA manifest with the manifest+json MIME type
+curl -s https://your-host/sitemap.xml       # 7 static URLs at your origin, each with a W3C <lastmod>
+curl -s https://your-host/manifest.webmanifest # valid PWA manifest incl. the maskable icon entry
+curl -s -o /dev/null -w "%{http_code}" https://your-host/icon-180.png  # 200 — apple-touch icon served
 curl -s https://your-host/ | rg "data-theme-applied"   # pre-paint theme script present (R2-01)
+curl -s https://your-host/ | rg "og:image:width"       # social-card meta present (R3-02)
 curl -s -o /dev/null -w "%{http_code}" https://your-host/gallery   # 200 — SPA fallback serves index.html
 ```
 
@@ -159,4 +173,6 @@ route (head contract live).
 | `db:setup` writes outside the repo / fails with "OUTSIDE the repo root" | An ambient `DATABASE_URL` is overriding the repo contract | Run `env -u DATABASE_URL npm run db:setup` (the containment audit refuses escaping relative URLs by design, ADR-002) |
 | `npm run e2e` fails to bind port 4173 | Stale preview server | `pkill -f "vite preview"`, or set `E2E_PORT` |
 | Playwright wants a newer browser than the cache holds | The lockfile bumped Playwright | `npx playwright install chromium` before the first e2e run after an install |
+| Sitemap has no `<lastmod>` after a build | Built from a tarball/non-git checkout | Build from a git clone — the generator omits lastmod loudly rather than guessing (§1) |
+| Unknown URLs (e.g. `/garbage`) appear indexable | Pre-R3 bundle — soft-404s shipped `index, follow` | Rebuild from the current tree; unknown paths now get `noindex, follow` via the HeadManager robots upsert (R3-04) |
 | Account/admin pages bounce to login after a hard refresh | You reintroduced the hydration race (navigation before the store's `ready` flag) | Gate on `ready` before redirecting — see AGENTS.md |

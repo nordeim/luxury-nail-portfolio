@@ -1,6 +1,6 @@
 # Aurelia Nail Artistry — Luxury Nail Portfolio
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![React](https://img.shields.io/badge/React-19.3-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6) ![Tailwind](https://img.shields.io/badge/TailwindCSS-4.3-38bdf8) ![Vite](https://img.shields.io/badge/Vite-7.3-646cff) ![Tests](https://img.shields.io/badge/tests-75%20unit%20%2B%20166%20e2e-brightgreen)
+![Version](https://img.shields.io/badge/version-1.0.0-blue) ![React](https://img.shields.io/badge/React-19.3-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6) ![Tailwind](https://img.shields.io/badge/TailwindCSS-4.3-38bdf8) ![Vite](https://img.shields.io/badge/Vite-7.3-646cff) ![Tests](https://img.shields.io/badge/tests-79%20unit%20%2B%20172%20e2e-brightgreen)
 
 A production-grade marketing + booking SPA for a luxury nail studio — a visual and functional superset of `aurelia-nail-artistry-demo.base44.app`, built as a single-file React application with a verified-parity editorial design, a public appointment-request workflow, hashed-credential accounts, an admin booking surface, and a dark-mode theme system the reference doesn't ship.
 
@@ -16,7 +16,7 @@ A production-grade marketing + booking SPA for a luxury nail studio — a visual
 | **Accounts (superset)** | Salted WebCrypto SHA-256 digests (`s1$salt$digest`), register → session → sign-out → sign-in, `/account` booking history, protected-route redirect |
 | **Dark mode (superset)** | Two-state light ↔ dark toggle — every activation visibly flips the theme; fresh profiles start in OS-following `system` mode until the first interaction; a pre-paint head script applies the stored/OS theme before first paint (no flash); `@custom-variant dark` class strategy; semantic tokens flip, hero photography stays light-on-image in both themes |
 | **Mobile navigation** | Portal-rendered full-screen menu overlay with focus trap, Escape/scroll-lock, and gap-based spacing (Tailwind v4 `space-y` engine trap pinned by e2e) |
-| **SEO + PWA** | Per-route title/description/OG contract, JSON-LD (`NailSalon` + `WebSite`), generated sitemap/robots, web manifest + icons |
+| **SEO + PWA** | Per-route title/description/OG/canonical/robots contract (soft-404s ship `noindex, follow`; the `/home` alias canonicalizes to `/`), JSON-LD (`NailSalon` with `openingHoursSpecification` + `sameAs`, `WebSite`), complete social-card meta (og:image dimensions/alt, twitter alt, og:locale), generated sitemap with git-derived `lastmod` + robots, web manifest + icons incl. apple-touch + maskable |
 | **Zero-server persistence** | Browser-only demo store (`localStorage`, `aurelia:v1` namespace) + a zero-dependency `node:sqlite` tooling contract that materializes `db/custom.db` |
 
 ## Architecture
@@ -87,10 +87,10 @@ npm run dev                   # vite dev server on http://localhost:5173
 
 ```bash
 npm run verify   # typecheck && lint && test (unit) && build
-npm run e2e      # 166 Playwright tests against the production preview (builds first)
+npm run e2e      # 172 Playwright tests against the production preview (builds first)
 ```
 
-Expected: typecheck silent · eslint silent · `75 passed` · `dist/index.html ~437 kB` · `166 passed`.
+Expected: typecheck silent · eslint silent · `79 passed` · `dist/index.html ~438 kB` · `172 passed`.
 
 **Demo accounts** (seeded in `src/data/studio.ts`, digests verified by unit tests):
 
@@ -115,8 +115,8 @@ npx playwright test tests/e2e/mobile-navigation.spec.ts        # single spec
 npx playwright test --project=mobile                           # iPhone-14 profile only
 ```
 
-- **Unit (75)** — booking validation seam, **theme contract (`resolveTheme` + the two-state `nextThemeMode` with the no-op impossibility invariant)**, password hash round-trip **including demo-seed digest verification**, SEO route map, db-path resolution contract, db-scripts containment audit, sitemap projection.
-- **E2E (166)** — smoke, **mobile navigation (the Tailwind v4 `space-y` regression pin)**, booking flow (validation → confirmation → admin surface), auth flow, **dark mode (first-click flip + pre-paint script + token values + persistence)**, visual parity (computed-style assertions on stable selectors), a11y (axe + structure), SEO head, PWA manifest, password hash round-trip. Desktop Chrome + iPhone-14 (chromium engine) profiles; e2e runs against the production build, never the dev server.
+- **Unit (79)** — booking validation seam, **theme contract (`resolveTheme` + the two-state `nextThemeMode` with the no-op impossibility invariant)**, password hash round-trip **including demo-seed digest verification**, SEO route map (**/home alias canonical + soft-404 noindex robots**), db-path resolution contract, db-scripts containment audit, sitemap projection (**git-derived `lastmod` contract**).
+- **E2E (172)** — smoke, **mobile navigation (the Tailwind v4 `space-y` regression pin)**, booking flow (validation → confirmation → admin surface), auth flow, **dark mode (first-click flip + pre-paint script + token values + persistence)**, visual parity (computed-style assertions on stable selectors), a11y (axe + structure), SEO head (**per-route titles, canonical/og:url, JSON-LD, social-card meta, alias canonical, soft-404 noindex, served robots/sitemap artifacts**), PWA manifest, password hash round-trip. Desktop Chrome + iPhone-14 (chromium engine) profiles; e2e runs against the production build, never the dev server.
 - `playwright.config.ts` auto-starts its own `vite preview` — no manual server management.
 
 ## Design System
@@ -139,11 +139,12 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 | [`docs/implementation-plan.md`](docs/implementation-plan.md) | Stack decision record, feature sequence, test plan, risks |
 | [`docs/remediation-plan-aurelia-r1.md`](docs/remediation-plan-aurelia-r1.md) | Review-round R1: audit findings, live parity sweep evidence, validation ledger (versioned planning docs) |
 | [`docs/remediation-plan-aurelia-r2.md`](docs/remediation-plan-aurelia-r2.md) | Review-round R2: theme-switching root-cause analysis + fixes (pre-paint script, two-state cycle), axe 4.14 Label-in-Name isolation |
+| [`docs/remediation-plan-aurelia-r3.md`](docs/remediation-plan-aurelia-r3.md) | Review-round R3: sitemap/SEO audit vs the ecommerce-store template + live reference; lastmod, soft-404 noindex, alias canonical, social-card meta, icon surfaces, JSON-LD enrichment |
 | [`Project_Architecture_Document.md`](Project_Architecture_Document.md) | Full engineering reference: ADRs, topology, layer model, data architecture, security |
 | [`AGENTS.md`](AGENTS.md) | Agent rulebook: commands, conventions, framework traps |
 | [`CLAUDE.md`](CLAUDE.md) | Session-playbook for AI coding agents |
 | [`docs/Tailwind-V4-Validation-Report.md`](docs/Tailwind-V4-Validation-Report.md) | The five v4 engine traps and the validated remediation patterns |
-| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round comparison sets (14–17 R1, 18–20 R2 on the fixed build); prior-project captures under `legacy-homenest/` |
+| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round comparison sets (14–17 R1, 18–20 R2, 21–23 R3); prior-project captures under `legacy-homenest/` |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Static-host deployment notes |
 | [`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`](docs/how-to-git-push-using-ssh-wrapper_SKILL.md) | Deploy-key push procedure (`ssh_git_wrapper_v3.py`) |
 
@@ -153,14 +154,16 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 |---|---|
 | `db:setup` writes outside the repo / fails with "OUTSIDE the repo root" | An ambient `DATABASE_URL` is overriding the repo contract. Run `env -u DATABASE_URL npm run db:setup` (the containment audit refuses relative URLs that escape the repo root by design). |
 | `db:setup` errors "node:sqlite is unavailable" | The db scripts need Node ≥ 22.5 (`node:sqlite`). The SPA itself runs on Node ≥ 20. |
+| Sitemap shows a localhost origin | `VITE_SITE_URL` is unset — the SEO layer defaults to `http://localhost:4173`. Set it, run `npm run seo:generate`, and commit the refreshed `public/` artifacts (see `docs/DEPLOYMENT.md`). |
 | Theme: page flashes light before going dark | Served HTML is missing the pre-paint head script (hand-edited head) — restore the synchronous `<head>` script from the repo's `index.html`; the e2e `pre-paint` pin guards it. |
 | Theme toggle's first click does nothing visible | Pre-R2-01 bundle (the old `system → light → dark` cycle) — rebuild from the current tree; the two-state cycle makes every click flip the resolved theme. |
 | Playwright reports missing browser executables after an install | The lockfile bumped Playwright and needs a newer headless shell — run `npx playwright install chromium` before the first e2e run. |
 | Playwright can't find a "Password"/"Account" control | Viewport-dependent affordances: the desktop nav (`Primary`) is hidden on mobile — assert via the mobile menu overlay (`Site menu` dialog). The suite encodes this pattern. |
 | Unit test fails on `.env` contract | The gate reads `.env` when present, else `.env.example` — restore the pinned `DATABASE_URL="file:../db/custom.db"` line. |
+| Sitemap is missing `<lastmod>` | Generated in a non-git checkout (tarball build) — the generator omits lastmod loudly when git metadata is unavailable; run from a git clone. |
 
 ## Status
 
-Complete and green as of 2026-10-19 (review round R2): reference investigation ✓ · full clone implemented ✓ · **75/75 unit ✓ · 166/166 e2e ✓** · typecheck/lint/build ✓ · **theme switching remediated (R2-01) + axe 4.14 Label-in-Name fixed (R2-02)** ✓ · dev-server capture sweeps ✓ · all four root docs + distilled skill + DEPLOYMENT guide generated ✓.
+Complete and green as of 2026-10-19 (review round R3): reference investigation ✓ · full clone implemented ✓ · **79/79 unit ✓ · 172/172 e2e ✓** · typecheck/lint/build ✓ · theme switching remediated (R2-01) + axe 4.14 Label-in-Name fixed (R2-02) ✓ · **sitemap `lastmod` + SEO hardening (R3: soft-404 noindex, alias canonical, social-card meta, icon surfaces, JSON-LD enrichment)** ✓ · dev-server capture sweeps ✓ · all four root docs + distilled skill + DEPLOYMENT guide generated ✓.
 
 No license file is bundled — all rights reserved by the repository owner.

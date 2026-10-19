@@ -63,6 +63,27 @@ describe("buildRouteMeta — route title map", () => {
     expect(buildRouteMeta("/booking").description).toBe(SITE_DESCRIPTION);
   });
 
+  it("canonicalizes the landing alias /home to / (one canonical per page — R3-03)", () => {
+    // matchPath maps /home to the home page (case-insensitive, Verified);
+    // two reachable URLs rendering one page must not canonicalize to
+    // themselves separately or they compete as duplicate content.
+    const plain = buildRouteMeta("/home");
+    expect(plain.canonicalUrl).toBe(`${SITE_URL}/`);
+    expect(plain.ogUrl).toBe(`${SITE_URL}/`);
+    expect(plain.title).toBe(SUFFIX);
+
+    const queried = buildRouteMeta("/home?utm=x");
+    expect(queried.canonicalUrl).toBe(`${SITE_URL}/`);
+    expect(queried.ogUrl).toBe(`${SITE_URL}/?utm=x`);
+  });
+
+  it("marks unknown paths noindex and known routes index (soft-404 contract — R3-04)", () => {
+    expect(buildRouteMeta("/").robots).toBe("index, follow");
+    expect(buildRouteMeta("/gallery").robots).toBe("index, follow");
+    expect(buildRouteMeta("/nowhere").robots).toBe("noindex, follow");
+    expect(buildRouteMeta("/NowHere").robots).toBe("noindex, follow");
+  });
+
   it("describes the real service catalog in canonical meta only (no price invention)", () => {
     // Durations render on the site; the reference shows no prices and the
     // clone preserves that — the description never invents one either.

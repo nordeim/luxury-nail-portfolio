@@ -1,0 +1,19 @@
+Session 4 opened with a clean tree at `0b20fab` (session 3 pushed). The workspace refreshed via `git pull` (fast-forward to `59bdb29`, bringing in `docs/session_3.md` + `docs/prompt-to-validate-3.md`).
+
+The full document suite was re-read (AGENTS.md, CLAUDE.md, README.md, PAD, SKILL.md, remediation-plan.md, worklog.md, session_3.md) and validated against the code. Baseline gate confirmed green: typecheck ✓ · 25/25 unit ✓ · build (495 KB) ✓ · 104/104 E2E ✓.
+
+**Audit findings.** Reading the code against the docs surfaced six stale SKILL claims (§7 said `nextOrderNumber()` produces random `ORD-XXXXXXX` while the code generates sequential `ORD-YYYY-NNN`; §8 still called the mobile menu's missing focus trap a "registered gap" though session 3 shipped it; §13 still deferred the crypto guest-token fix that R3-02 landed; §15 showed a `q` query param where the contract is `search`; §19 still documented the page dim removed in session 3; Appendix D lacked the session-2 row). More importantly, the audit found a real accessibility gap: **the cart drawer carried `role="dialog"` but no `aria-modal`, no focus trap, and no focus management** — keyboard users could Tab out of it into the dimmed page behind it.
+
+**Live parity re-sweep** (agent-browser, iPhone 14 profile, reference re-measured 2026-10-12) honored remediation plan §9.6.2. It re-confirmed the session-3 measurements (trailing green X, no page dim, slide 1 "Elevate Your Kitchen") and found five more menu-level gaps: the panel is translucent `rgba(255,255,255,0.8)` with **no** drop shadow; the menu's search control is a compact muted icon pill at rest — functionally inert, and even unclickable because the reference's own toast viewport covers it; rows render at 14px/500 with muted-foreground inactive text; the active row radius is 12px, not a full pill. Desktop spot-checks matched existing pins.
+
+**TDD execution (red → green):**
+- R4-01: cart drawer became a full modal — `aria-modal="true"`, focus moves in on open (close button first), Tab/Shift+Tab cycle within, backdrop `tabIndex={-1}`, focus restores to the trigger on close. New `tests/e2e/cart-drawer.spec.ts` (3 specs × 2 projects).
+- R4-02: the axe gate extended to authenticated surfaces — `/account` and `/admin` log in through the real UI and must show zero critical/serious structural violations. Both clean; contrast findings logged (parity-pinned tokens).
+- R4-03: all six SKILL drift claims corrected; SKILL bumped to v1.1.0.
+- R4-04: the five menu gaps fixed — new `--color-panel` token (alpha baked in; v4 `/NN` modifiers compute in oklab, a new registered trap T-13 alongside `rounded-full` = `calc(infinity * 1px)`), compact muted search pill that expands into the working input on tap (parity at rest, superset on interaction, registered divergence PAD §5.6 #13), `text-sm` 14px rows, `text-muted-foreground` inactive rows, `rounded-md` active row. Four new/updated pins in `mobile-navigation.spec.ts` (14 specs) and one updated pin in `mobile-header-parity.spec.ts`.
+
+A test-only detour worth recording: the admin a11y test initially asserted the post-login URL was `/admin`, but login lands on `/account` — fixed by navigating after sign-in, matching the auth spec's pattern.
+
+**Verification gate:** typecheck ✓ · 25/25 unit ✓ · build (497 KB) ✓ · **120/120 E2E** (60 specs × 2 projects) ✓ · axe structural gate clean on six surfaces ✓.
+
+Session-fresh captures saved to `docs/screenshots/` (session4-home-desktop, session4-products-desktop, session4-pdp-desktop, session4-cart-drawer, session4-mobile-home, session4-mobile-menu-open), taken against the production preview build. Docs aligned in the same change: remediation plan §10 addendum, PAD (§5.2 panel token, §5.6 divergence 13, §7.1 test table, §7.4 checklist, §11 key files), AGENTS.md (trap #8, modal-menu/drawer quirks), CLAUDE.md and README counts, SKILL.md (§5/§7/§8/§9 T-13/§11/§13/§15/§19, Appendices B–D), worklog.md.

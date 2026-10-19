@@ -1,5 +1,4 @@
-Please carefully read completely and internalized your operating instructions in the attached/pasted text.
-Now, please meticulously plan to create a complete, fully functioning, production-ready and enterprise-grade polished website that is a clone of `https://aurelia-nail-artistry-demo.base44.app/` (latter needs to login `https://aurelia-nail-artistry-demo.base44.app/login` using ID `sepnetflix2023@outlook.com` and password `$Abcd1234`). There are also skills in the repo included `skills/` folder that may be relevant and helpful (refer to repo included `skills/skills-catalog.md` to find relevant skills for help in building an awesome clone of `https://aurelia-nail-artistry-demo.base44.app/`)
+awesome meticulous job so far. please keep up the good work. now, please do the same methodology and skill to capture the full landing page image for website `https://aurelia-nail-artistry-demo.base44.app/`, one image for day/light mode and one for dark/night mode (if available), also one full screen image in mobile display format, then use the attached `replicate-web-app_SKILL.md` skill to create a complete working (fully functioning), production-ready and enterprise-grade polished website that is a clone of the reference website `https://aurelia-nail-artistry-demo.base44.app/` (login to `https://aurelia-nail-artistry-demo.base44.app/login` using user ID `sepnetflix2023@outlook.com` and password `$Abcd1234` to have a complete picture/understanding of the reference website). There are also skills in the repo included `skills/` folder that may be relevant and helpful (refer to repo included `skills/skills-catalog.md` to find relevant skills for help in building an awesome clone of `https://aurelia-nail-artistry-demo.base44.app/`)
 
 Consider using the included skills `docs/replicate-web-app_SKILL.md` , `skills/clone-app-pat-pro`, `skills/agent-browser`, `skills/rootless-postgresql`, `skills/e-commerce-nextjs16-monorepo`, `skills/nextjs-postgresql-single-app`, and `skills/tdd`.
 
@@ -41,4 +40,5 @@ SSH key for `git push`:
 ```
 
 ```
+
 

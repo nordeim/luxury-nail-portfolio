@@ -8,7 +8,7 @@ outside the repo, points `GIT_SSH_COMMAND` at it, authenticates, pushes
 `main`, verifies the remote ref equals local HEAD, then shreds the temp key.
 
 **Field-tested.** 2026-09-16: this exact procedure (wrapper v3.1 + the
-paramiko shim in Appendix A) pushed `0ab29dc..f932360` to `main` from a
+paramiko shim in Appendix A) pushed `0ab29dc..f932360` (pre-import history — predates the repo's GitHub web-upload import; unreachable in the current repository) to `main` from a
 sandbox that had **no OpenSSH binary at all**, then re-verified the remote
 ref and the fingerprint of the key in play. Everything below is that
 session, generalized.

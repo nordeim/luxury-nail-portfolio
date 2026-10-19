@@ -137,11 +137,12 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 |---|---|
 | [`docs/reference-investigation.md`](docs/reference-investigation.md) | Evidence-labelled observation of the live reference (routes, copy, tokens, auth, booking probe) |
 | [`docs/implementation-plan.md`](docs/implementation-plan.md) | Stack decision record, feature sequence, test plan, risks |
+| [`docs/remediation-plan-aurelia-r1.md`](docs/remediation-plan-aurelia-r1.md) | Review-round R1: audit findings, live parity sweep evidence, validation ledger (versioned planning docs) |
 | [`Project_Architecture_Document.md`](Project_Architecture_Document.md) | Full engineering reference: ADRs, topology, layer model, data architecture, security |
 | [`AGENTS.md`](AGENTS.md) | Agent rulebook: commands, conventions, framework traps |
 | [`CLAUDE.md`](CLAUDE.md) | Session-playbook for AI coding agents |
 | [`docs/Tailwind-V4-Validation-Report.md`](docs/Tailwind-V4-Validation-Report.md) | The five v4 engine traps and the validated remediation patterns |
-| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs); prior-project captures under `legacy-homenest/` |
+| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round R1 comparison set (14–17, incl. fresh reference evidence); prior-project captures under `legacy-homenest/` |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Static-host deployment notes |
 | [`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`](docs/how-to-git-push-using-ssh-wrapper_SKILL.md) | Deploy-key push procedure (`ssh_git_wrapper_v3.py`) |
 

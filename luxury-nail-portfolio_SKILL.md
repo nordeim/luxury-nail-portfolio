@@ -299,6 +299,7 @@ Numbered for reference; each entry has bitten this codebase or its predecessor.
 | Mobile test can't find nav links | Desktop nav hidden at mobile viewport | Branch on `Open menu` and use the `Site menu` dialog (`Mobile` nav) |
 | e2e tests stale behavior | `dist/` older than `src/` | `npm run build` (e2e serves the build, never dev) |
 | Sitemap/robots stale after route change | prebuild regenerates only on build | `npm run seo:generate` + commit refreshed artifacts |
+| agent-browser probe returns fallback-sized/odd-token reads | `open --viewport` is a no-op in 0.39.0, and the page can be probed before async CSS (Base44 bundles late) applies | Always `set viewport <w> <h>` + re-open + settle (networkidle) before measuring; distrust the first computed read after a reload |
 
 ### 10.2 The swallowed-`:root` incident (full procedure, §9 #02)
 

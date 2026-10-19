@@ -57,7 +57,7 @@ describe("DATABASE_URL contract", () => {
   });
 
   it("matches a real repo layout where db/custom.db sits beside prisma/", () => {
-    const repo = mkdtempSync(join(tmpdir(), "homenest-db-"));
+    const repo = mkdtempSync(join(tmpdir(), "aurelia-db-"));
     writeFileSync(join(repo, "package.json"), "{}\n");
     mkdirSync(join(repo, SCHEMA_DIR), { recursive: true });
     writeFileSync(join(repo, SCHEMA_DIR, "schema.prisma"), "datasource db {}\n");

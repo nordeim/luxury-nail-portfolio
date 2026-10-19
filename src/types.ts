@@ -1,58 +1,69 @@
-export type CategoryId =
-  | "cookware"
-  | "bakeware"
-  | "kitchen-tools"
-  | "storage"
-  | "appliances"
-  | "dining"
-  | "cleaning"
-  | "decor";
+// Aurelia Nail Artistry — domain types.
+// Zero-server SPA: booking requests and users persist in localStorage
+// (ADR-001); DATABASE_URL remains the tooling contract (db-path.ts).
 
-export interface Category {
-  id: CategoryId;
-  name: string;
-  blurb: string;
-  image: string;
-}
+export type ServiceCategoryId =
+  | "signature"
+  | "extensions"
+  | "bespoke"
+  | "bridal"
+  | "specialty"
+  | "maintenance";
 
-export interface Product {
+export interface Service {
   id: string;
-  slug: string;
   name: string;
-  category: CategoryId;
-  priceCents: number;
-  compareAtCents: number | null;
-  rating: number;
-  reviewCount: number;
-  stock: number;
-  visible: boolean;
-  featured: boolean;
-  isNew: boolean;
-  image: string;
-  gallery: string[];
-  badge: string | null;
-  materials: string[];
-  features: string[];
   description: string;
-  shippingNote: string;
+  durationMin: number;
+  category: ServiceCategoryId;
 }
 
-export interface CartLine {
-  productId: string;
-  quantity: number;
-}
+export type WorkCategory = "editorial" | "bridal" | "avant-garde" | "classic";
 
-export interface Address {
+export interface GalleryWork {
   id: string;
-  label: string;
   name: string;
-  line1: string;
-  line2: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-  isDefault: boolean;
+  category: WorkCategory;
+  image: string;
+  /** Portfolio teaser order on the landing page; null = landing-only exclusion. */
+  featuredOrder: number | null;
+}
+
+export interface TimeSlot {
+  /** Display label exactly as offered by the studio, e.g. "10:00 AM". */
+  label: string;
+  /** 24h minutes-since-midnight, used for sorting and coherence checks. */
+  minutes: number;
+}
+
+export interface StudioInfo {
+  name: string;
+  fullName: string;
+  tagline: string;
+  addressLines: [string, string];
+  hoursLine1: string;
+  hoursLine2: string;
+  email: string;
+  phone: string;
+  instagram: string;
+}
+
+export type BookingStatus = "received" | "confirmed" | "cancelled";
+
+export interface BookingRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  serviceId: string;
+  /** ISO date, YYYY-MM-DD. */
+  date: string;
+  timeSlot: string;
+  notes: string;
+  /** Set when the requester was signed in; links the request to /account. */
+  userId: string | null;
+  status: BookingStatus;
+  createdAt: string;
 }
 
 export interface User {
@@ -60,74 +71,12 @@ export interface User {
   email: string;
   name: string;
   role: "customer" | "admin";
-  /**
-   * Salted WebCrypto digest — `s1$<salt>$<sha256(salt:password)>` (see
-   * src/lib/password.ts). Pre-session-5 records were plaintext under a
-   * `password` field; they are normalized on rehydrate and migrated to a
-   * digest on the next successful login (upgrade-on-login).
-   */
   passwordHash: string;
-  addresses: Address[];
 }
 
-export type OrderStatus =
-  | "pending"
-  | "paid"
-  | "processing"
-  | "in_transit"
-  | "delivered"
-  | "cancelled"
-  | "refunded";
-
-export interface OrderItem {
-  productId: string;
-  name: string;
-  image: string;
-  unitCents: number;
-  quantity: number;
-}
-
-export interface Order {
-  id: string;
-  number: string;
-  userId: string | null;
-  email: string;
-  placedAt: string;
-  status: OrderStatus;
-  items: OrderItem[];
-  subtotalCents: number;
-  discountCents: number;
-  shippingCents: number;
-  taxCents: number;
-  totalCents: number;
-  promoCode: string | null;
-  shippingAddress: Omit<Address, "id" | "isDefault" | "label">;
-  /* Session-42 (F42-10, remediation §31 D3): optional additive field — the
-     reference's success page renders a phone row in Delivery Information.
-     Old persisted orders hydrate without it (no row rendered); the catalog
-     seed is untouched, so no STORAGE_KEY bump. */
-  phone?: string;
-  paymentLast4: string;
-  carrier: string | null;
-  trackingNumber: string | null;
-  timeline: { at: string; label: string }[];
-  guestToken: string;
-}
-
-export interface CarouselSlide {
-  id: string;
-  title: string;
-  kicker: string;
-  body: string;
-  cta: string;
-  href: string;
-  image: string;
-  active: boolean;
-}
+export type ThemeMode = "light" | "dark" | "system";
 
 export interface ToastMessage {
   id: string;
   text: string;
 }
-
-export type SortKey = "featured" | "price-asc" | "price-desc" | "rating" | "newest";

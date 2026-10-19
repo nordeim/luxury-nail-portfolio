@@ -22,7 +22,7 @@
  *   - priorities/frequencies follow the ecommerce-store template's
  *     src/app/sitemap.ts.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,40 +37,20 @@ const escapeXml = (value) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&apos;");
 
-/** Extract visible product slugs from src/data/catalog.ts.
- *  Product objects are brace-free inside (arrays only), so a flat object
-  * scan is safe; tests/sitemap.test.ts cross-checks the output against the
-  * real catalog import, so any drift fails the gate. */
-function visibleSlugs() {
-  const source = readFileSync(join(ROOT, "src", "data", "catalog.ts"), "utf8");
-  const objects = source.match(/\{[^{}]*\}/gs) ?? [];
-  const slugs = [];
-  for (const object of objects) {
-    const slug = /(?:^|[,{\n]\s*)slug:\s*"([^"]+)"/.exec(object)?.[1];
-    if (!slug) continue;
-    if (/visible:\s*false/.test(object)) continue;
-    slugs.push(slug);
-  }
-  return slugs;
-}
+
 
 // path, changefreq, priority — mirrors the ecommerce-store template.
 const STATIC_ROUTES = [
   { path: "/", changefreq: "daily", priority: "1" },
-  { path: "/products", changefreq: "daily", priority: "0.9" },
-  { path: "/about", changefreq: "monthly", priority: "0.5" },
-  { path: "/contact", changefreq: "monthly", priority: "0.5" },
-  { path: "/track-order", changefreq: "monthly", priority: "0.5" },
-  { path: "/privacy-policy", changefreq: "monthly", priority: "0.3" },
-  { path: "/terms-of-service", changefreq: "monthly", priority: "0.3" },
-  { path: "/refund-policy", changefreq: "monthly", priority: "0.3" },
-  { path: "/cookie-policy", changefreq: "monthly", priority: "0.3" },
-  { path: "/disclaimer", changefreq: "monthly", priority: "0.3" },
+  { path: "/gallery", changefreq: "weekly", priority: "0.9" },
+  { path: "/services", changefreq: "weekly", priority: "0.9" },
+  { path: "/about", changefreq: "monthly", priority: "0.6" },
+  { path: "/booking", changefreq: "monthly", priority: "0.8" },
   { path: "/login", changefreq: "yearly", priority: "0.2" },
   { path: "/register", changefreq: "yearly", priority: "0.2" },
 ];
 
-const DISALLOWED = ["/admin", "/account", "/cart", "/checkout", "/order-success"];
+const DISALLOWED = ["/admin", "/account", "/reset"];
 
 function robotsXml() {
   const lines = [
@@ -84,15 +64,8 @@ function robotsXml() {
   return lines.join("\n");
 }
 
-function sitemapXml(slugs) {
-  const urls = [
-    ...STATIC_ROUTES.map((route) => ({ loc: `${SITE_URL}${route.path}`, ...route })),
-    ...slugs.map((slug) => ({
-      loc: `${SITE_URL}/products/${slug}`,
-      changefreq: "weekly",
-      priority: "0.8",
-    })),
-  ];
+function sitemapXml() {
+  const urls = STATIC_ROUTES.map((route) => ({ loc: `${SITE_URL}${route.path}`, ...route }));
   const body = urls
     .map(
       (url) =>
@@ -111,7 +84,6 @@ function sitemapXml(slugs) {
   );
 }
 
-const slugs = visibleSlugs();
 writeFileSync(join(ROOT, "public", "robots.txt"), robotsXml());
-writeFileSync(join(ROOT, "public", "sitemap.xml"), sitemapXml(slugs));
-console.log(`seo: wrote public/robots.txt + public/sitemap.xml (${SITE_URL}) — ${STATIC_ROUTES.length} static + ${slugs.length} product URLs`);
+writeFileSync(join(ROOT, "public", "sitemap.xml"), sitemapXml());
+console.log(`seo: wrote public/robots.txt + public/sitemap.xml (${SITE_URL}) — ${STATIC_ROUTES.length} static URLs`);

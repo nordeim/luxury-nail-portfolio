@@ -1,26 +1,19 @@
 import { useEffect } from "react";
-import { PRODUCTS } from "@/data/catalog";
 import { useRouter } from "@/lib/router";
 import { buildRouteMeta } from "@/lib/seo";
 
 /**
- * Applies the per-route head contract (session 8 — SEO workstream).
+ * Applies the per-route head contract.
  *
  * `src/lib/seo.ts` is the pure seam (unit-pinned by tests/seo.test.ts);
  * this component merely writes what `buildRouteMeta` returns:
- *   - document.title — the reference's per-route title map (decoded live
- *     2026-10-12), extended to dynamic routes (PDP product titles,
- *     humanized unknown slugs, auth/not-found pages).
+ *   - document.title — the reference's per-route title map (verified live),
+ *     extended to every clone route.
  *   - meta description, canonical link, og/twitter title+description+url.
- *   - a scoped `#route-jsonld` script carrying the schema.org Product node
- *     on resolved PDPs — removed everywhere else (one node per script).
  *
  * The static fallbacks in index.html cover first paint and no-JS crawlers;
- * this effect takes over on every route change (including popstate — the
- * router's location state drives it).
+ * this effect takes over on every route change (including popstate).
  */
-
-const ROUTE_JSONLD_ID = "route-jsonld";
 
 function upsertMeta(selector: string, create: () => HTMLMetaElement, content: string): void {
   let element = document.head.querySelector<HTMLMetaElement>(selector);
@@ -41,26 +34,11 @@ function upsertCanonical(href: string): void {
   element.href = href;
 }
 
-function writeRouteJsonLd(node: Record<string, unknown> | null): void {
-  const existing = document.head.querySelector<HTMLScriptElement>(`#${ROUTE_JSONLD_ID}`);
-  if (!node) {
-    existing?.remove();
-    return;
-  }
-  const script = existing ?? document.createElement("script");
-  if (!existing) {
-    script.id = ROUTE_JSONLD_ID;
-    script.type = "application/ld+json";
-    document.head.appendChild(script);
-  }
-  script.textContent = JSON.stringify(node);
-}
-
 export function HeadManager() {
   const { path, search } = useRouter();
 
   useEffect(() => {
-    const meta = buildRouteMeta(`${path}${search}`, PRODUCTS);
+    const meta = buildRouteMeta(`${path}${search}`);
 
     document.title = meta.title;
 
@@ -101,7 +79,6 @@ export function HeadManager() {
     }, meta.ogUrl);
 
     upsertCanonical(meta.canonicalUrl);
-    writeRouteJsonLd(meta.jsonLd);
   }, [path, search]);
 
   return null;

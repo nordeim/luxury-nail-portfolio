@@ -44,20 +44,20 @@ test.describe("served PWA manifest (superset)", () => {
       icons?: Array<{ src?: string; sizes?: string; type?: string }>;
     };
 
-    expect(manifest.name).toBe("HomeNest Kitchen");
-    expect(manifest.short_name).toBe("HomeNest");
+    expect(manifest.name).toBe("Aurelia Nail Artistry");
+    expect(manifest.short_name).toBe("Aurelia");
     expect(manifest.start_url).toBe("/");
     expect(manifest.display).toBe("standalone");
-    expect(manifest.theme_color).toBe("#fbfaf9");
-    expect(manifest.background_color).toBe("#fbfaf9");
+    expect(manifest.theme_color).toBe("#f5f3ef");
+    expect(manifest.background_color).toBe("#f5f3ef");
 
     const icons = manifest.icons ?? [];
     const sizes = icons.map((icon) => icon.sizes);
     expect(sizes).toContain("192x192");
     expect(sizes).toContain("512x512");
     for (const icon of icons) {
-      // Absolute CDN URL per the FAVICON-1 precedent (no shipped binary).
-      expect(icon.src).toMatch(/^https?:\/\//);
+      // Root-absolute, shipped binaries — independent assets, not CDN pins.
+      expect(icon.src).toMatch(/^\//);
       expect(icon.type).toBe("image/png");
     }
   });
@@ -69,11 +69,7 @@ test.describe("served PWA manifest (superset)", () => {
     // manifest href to a relative one. On a 2-segment route that relative
     // href resolves under /products/ and 404s — pin the root-absolute form
     // exactly there, plus on the home route.
-    await page.goto("/products");
-    const firstLink = page.locator('[' + 'href^="/product/"]').first();
-    const href = await firstLink.getAttribute("href");
-    expect(href).toBeTruthy();
-    await page.goto(href as string);
+    await page.goto("/admin/bookings");
 
     const link = page.locator('link[rel="manifest"]');
     await expect(link).toHaveCount(1);

@@ -1,148 +1,145 @@
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { spawnSync, execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DEMO_USERS, PRODUCTS } from "../src/data/catalog";
-import { DATABASE_URL, dbPathFromRepoRoot } from "../src/lib/db-path";
+import { DatabaseSync } from "node:sqlite";
+import { afterAll, describe, expect, it } from "vitest";
+import { GALLERY_WORKS, SERVICES } from "../src/data/studio";
 
 /**
- * db scripts contract (session 26 — R26-03).
+ * db:setup tooling contract (ADR-002) — the script materializes
+ * DATABASE_URL="file:../db/custom.db" as a real SQLite file at
+ * <repoRoot>/db/custom.db and seeds the Aurelia catalog into it.
  *
- * `npm run db:setup` (scripts/db-setup.mjs, node:sqlite, zero dependencies)
- * materializes the ADR-002 `DATABASE_URL` contract as a REAL SQLite database:
- * schema init + catalog seed, idempotent. The SPA keeps persisting to
- * localStorage (ADR-001 — Prisma/the server stack stay rejected); the scripts
- * are tooling parity for the standing mandate ("add db scripts to package.json
- * for database initialization and data seeding", ecommerce-store naming
- * convention) and leave the PAD §6.3 server workstream a live database.
- *
- * Like tests/sitemap.test.ts, this gate cross-checks the SCRIPT's extraction
- * of src/data/catalog.ts against the real catalog import — any drift between
- * the regex projection and the module fails here, not in production.
+ * The gate runs the REAL script against a temp DATABASE_URL, then
+ * cross-checks every row count against the true studio import — so
+ * extraction drift in the zero-dep projection fails CI, not production.
  */
 
-const ROOT = join(fileURLToPath(import.meta.url), "..", "..");
-const SCRIPT = join(ROOT, "scripts", "db-setup.mjs");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-let workdir: string;
-let dbFile: string;
+const workspace = mkdtempSync(join(tmpdir(), "aurelia-db-"));
+const dbFile = join(workspace, "custom.db");
+process.env.DATABASE_URL = `file:../db/custom.db`;
+process.env.AURELIA_DB_OVERRIDE_DIR = workspace;
 
-function runScript(mode?: string, env: Record<string, string> = {}) {
-  const args = mode ? [SCRIPT, mode] : [SCRIPT];
-  return execFileSync(process.execPath, args, {
+afterAll(() => {
+  rmSync(workspace, { recursive: true, force: true });
+});
+
+function runSetup(): void {
+  execFileSync("node", [join(ROOT, "scripts", "db-setup.mjs")], {
     cwd: ROOT,
-    env: { ...process.env, ...env },
-    encoding: "utf8",
+    env: { ...process.env, DATABASE_URL: `file:${dbFile}` },
+    stdio: "pipe",
   });
 }
 
-beforeAll(() => {
-  workdir = mkdtempSync(join(tmpdir(), "homenest-db-test-"));
-  dbFile = join(workdir, "custom.db");
-});
-
-afterAll(() => {
-  rmSync(workdir, { recursive: true, force: true });
-});
-
-describe("db:setup script (init + seed)", () => {
-  it("materializes a SQLite database at the DATABASE_URL-resolved path", () => {
-    const out = runScript(undefined, { DATABASE_URL: `file:${dbFile}` });
-    expect(out).toContain("db:setup");
-    expect(existsSync(dbFile)).toBe(true);
+describe("scripts/db-setup.mjs — the DATABASE_URL tooling contract", () => {
+  it("materializes schema + seed at the resolved path", () => {
+    runSetup();
+    const db = new DatabaseSync(dbFile);
+    const tables = db
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+      .all()
+      .map((row) => row.name as string);
+    expect(tables).toEqual(["booking_requests", "gallery_works", "services", "users"]);
+    db.close();
   });
 
-  it("seeds the full catalog — row counts match the real catalog import", () => {
-    const db = new DatabaseSync(dbFile, { readOnly: true });
-    const products = db.prepare("SELECT COUNT(*) AS n FROM products").get() as { n: number };
-    const users = db.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
-    const categories = db.prepare("SELECT COUNT(*) AS n FROM categories").get() as { n: number };
-    db.close();
+  it("seeds row counts that match the real studio import", () => {
+    const db = new DatabaseSync(dbFile);
+    const serviceCount = db.prepare("SELECT COUNT(*) AS n FROM services").get()?.n as number;
+    const workCount = db.prepare("SELECT COUNT(*) AS n FROM gallery_works").get()?.n as number;
+    const userCount = db.prepare("SELECT COUNT(*) AS n FROM users").get()?.n as number;
+    expect(serviceCount).toBe(SERVICES.length);
+    expect(workCount).toBe(GALLERY_WORKS.length);
+    expect(userCount).toBeGreaterThanOrEqual(2);
 
-    expect(products.n).toBe(PRODUCTS.length);
-    expect(users.n).toBe(DEMO_USERS.length);
-    expect(categories.n).toBe(8);
+    // Spot-check the pinned service fields (name + duration are the
+    // reference-verified contract — docs/reference-investigation.md §3.3).
+    const bridal = db
+      .prepare("SELECT name, duration_min FROM services WHERE id = ?")
+      .get("bridal-collection") as { name: string; duration_min: number } | undefined;
+    expect(bridal?.name).toBe("Bridal Collection");
+    expect(bridal?.duration_min).toBe(180);
+    db.close();
   });
 
-  it("projects product fields faithfully (cross-check against the module)", () => {
-    const db = new DatabaseSync(dbFile, { readOnly: true });
-    const row = db
-      .prepare("SELECT slug, name, category, price_cents, rating, visible FROM products WHERE id = ?")
-      .get("p-knife-set") as Record<string, string | number>;
+  it("seeds password DIGESTS only — never plaintext", () => {
+    const db = new DatabaseSync(dbFile);
+    const hashes = db.prepare("SELECT password_hash FROM users").all() as Array<{
+      password_hash: string;
+    }>;
+    for (const row of hashes) {
+      expect(row.password_hash).toMatch(/^s1\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+    }
     db.close();
-
-    const source = PRODUCTS.find((p) => p.id === "p-knife-set");
-    expect(source).toBeDefined();
-    if (!source) return;
-    expect(row.slug).toBe(source.slug);
-    expect(row.name).toBe(source.name);
-    expect(row.category).toBe(source.category);
-    expect(row.price_cents).toBe(source.priceCents);
-    expect(row.rating).toBe(source.rating);
-    expect(row.visible).toBe(source.visible ? 1 : 0);
   });
 
-  it("seeds demo users with their password digests and roles", () => {
-    const db = new DatabaseSync(dbFile, { readOnly: true });
-    const row = db
-      .prepare("SELECT email, role, password_hash FROM users WHERE id = ?")
-      .get("u-john") as Record<string, string>;
+  it("projects featuredOrder NULL for gallery works outside the portfolio teaser", () => {
+    const db = new DatabaseSync(dbFile);
+    const featured = db
+      .prepare("SELECT COUNT(*) AS n FROM gallery_works WHERE featured_order IS NOT NULL")
+      .get()?.n as number;
+    const nullOrder = db
+      .prepare("SELECT COUNT(*) AS n FROM gallery_works WHERE featured_order IS NULL")
+      .get()?.n as number;
+    expect(featured).toBe(4);
+    expect(nullOrder).toBe(GALLERY_WORKS.length - 4);
     db.close();
-
-    expect(row.email).toBe("john@example.com");
-    expect(row.role).toBe("customer");
-    // Digest at rest (session 5) — never a plaintext password.
-    expect(row.password_hash).toMatch(/^s1\$[0-9a-f]+\$[0-9a-f]{64}$/);
   });
 
-  it("is idempotent — re-running keeps counts stable (no duplicate rows)", () => {
-    runScript(undefined, { DATABASE_URL: `file:${dbFile}` });
-    const db = new DatabaseSync(dbFile, { readOnly: true });
-    const products = db.prepare("SELECT COUNT(*) AS n FROM products").get() as { n: number };
-    const users = db.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
+  it("is idempotent — a second setup run keeps counts stable", () => {
+    runSetup();
+    const db = new DatabaseSync(dbFile);
+    const serviceCount = db.prepare("SELECT COUNT(*) AS n FROM services").get()?.n as number;
+    expect(serviceCount).toBe(SERVICES.length);
     db.close();
-    expect(products.n).toBe(PRODUCTS.length);
-    expect(users.n).toBe(DEMO_USERS.length);
   });
 });
 
-describe("db script modes", () => {
-  it("db:init creates the schema without seeding", () => {
-    const initFile = join(workdir, "init-only.db");
-    runScript("--init", { DATABASE_URL: `file:${initFile}` });
-    const db = new DatabaseSync(initFile, { readOnly: true });
-    const products = db.prepare("SELECT COUNT(*) AS n FROM products").get() as { n: number };
-    db.close();
-    expect(existsSync(initFile)).toBe(true);
-    expect(products.n).toBe(0);
-  });
-
-  it("db:seed fills an initialized database", () => {
-    const seedFile = join(workdir, "seed-only.db");
-    runScript("--init", { DATABASE_URL: `file:${seedFile}` });
-    runScript("--seed", { DATABASE_URL: `file:${seedFile}` });
-    const db = new DatabaseSync(seedFile, { readOnly: true });
-    const products = db.prepare("SELECT COUNT(*) AS n FROM products").get() as { n: number };
-    db.close();
-    expect(products.n).toBe(PRODUCTS.length);
+describe(".env — the operator-facing DATABASE_URL contract", () => {
+  it("pins file:../db/custom.db (schema-relative → <repoRoot>/db/custom.db)", () => {
+    // .env is the operator's local contract (gitignored); .env.example is the
+    // committed template a fresh clone starts from. The contract must hold in
+    // BOTH, so the gate reads whichever exists.
+    const envPath = existsSync(join(ROOT, ".env"))
+      ? join(ROOT, ".env")
+      : join(ROOT, ".env.example");
+    const env = readFileSync(envPath, "utf8");
+    expect(env).toContain('DATABASE_URL="file:../db/custom.db"');
   });
 });
 
-describe("default URL contract (ADR-002)", () => {
-  it("the documented default still resolves to the repo-root db/ folder", () => {
-    expect(DATABASE_URL).toBe("file:../db/custom.db");
-    expect(dbPathFromRepoRoot()).toBe("db/custom.db");
+describe("db-setup containment audit — the DB can never silently escape the repo", () => {
+  it("clamps RELATIVE DATABASE_URLs inside the repo root even with excess '..'", () => {
+    // The prisma/ anchor absorbs one '..', and the resolver's stack clamps at
+    // empty — so relative URLs can only ever land INSIDE the repo root. This
+    // pins that structural property (the misconfiguration class is impossible,
+    // not merely rejected): excess '..' must NOT escape above <ROOT>.
+    const clamped = join(ROOT, ".aurelia-clamp-tmp", "custom.db");
+    rmSync(dirname(clamped), { recursive: true, force: true });
+    execFileSync("node", [join(ROOT, "scripts", "db-setup.mjs")], {
+      cwd: ROOT,
+      env: { ...process.env, DATABASE_URL: "file:../../.aurelia-clamp-tmp/custom.db" },
+      stdio: "pipe",
+    });
+    expect(existsSync(clamped)).toBe(true);
+    rmSync(dirname(clamped), { recursive: true, force: true });
   });
 
-  it("package.json wires db:init / db:seed / db:setup scripts", async () => {
-    const pkg = JSON.parse(
-      (await import("node:fs")).readFileSync(join(ROOT, "package.json"), "utf8"),
-    ) as { scripts: Record<string, string> };
-    expect(pkg.scripts["db:init"]).toContain("db-setup.mjs");
-    expect(pkg.scripts["db:seed"]).toContain("db-setup.mjs");
-    expect(pkg.scripts["db:setup"]).toContain("db-setup.mjs");
+  it("runs with an ABSOLUTE override outside the repo but prints a prominent notice on stderr", () => {
+    const outside = join(mkdtempSync(join(tmpdir(), "aurelia-db-outside-")), "custom.db");
+    const result = spawnSync("node", [join(ROOT, "scripts", "db-setup.mjs")], {
+      cwd: ROOT,
+      env: { ...process.env, DATABASE_URL: `file:${outside}` },
+      encoding: "utf8",
+    });
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain("OUTSIDE the repo root");
+    expect(existsSync(outside)).toBe(true);
+    rmSync(dirname(outside), { recursive: true, force: true });
   });
 });

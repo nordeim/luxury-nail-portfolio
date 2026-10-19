@@ -2,8 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /account
-Disallow: /cart
-Disallow: /checkout
-Disallow: /order-success
+Disallow: /reset
 
 Sitemap: http://localhost:4173/sitemap.xml

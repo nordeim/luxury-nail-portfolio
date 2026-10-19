@@ -23,7 +23,7 @@
  * never logs or transforms them.
  */
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
-import { dirname, isAbsolute, join } from "node:path";
+import { dirname, isAbsolute, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -61,7 +61,35 @@ function targetFile(url) {
   return join(ROOT, resolved);
 }
 
-// ── Catalog projection (flat-object scan + brace-matched users) ──────────────
+/**
+ * Containment audit — the ADR-002 contract pins the database to
+ * <repoRoot>/db/custom.db. A RELATIVE file: URL that resolves outside the
+ * repo root is a misconfiguration (wrong anchor): fail loudly instead of
+ * silently materializing a stray database in a parent workspace. ABSOLUTE
+ * URLs are intentional overrides (CI temp workspaces, ops tooling) and stay
+ * allowed, but they earn a prominent notice so the operator sees exactly
+ * where the file landed.
+ */
+function auditContainment(url, file) {
+  const rel = relative(ROOT, file);
+  const escapesRepo = rel.startsWith("..") || isAbsolute(rel);
+  if (!escapesRepo) return;
+  const rawPath = url.trim().replace(/^file:/, "");
+  if (!isAbsolute(rawPath)) {
+    throw new Error(
+      `[db] DATABASE_URL="${url}" resolves to ${file}, which is OUTSIDE the repo root (${ROOT}). ` +
+        `Relative file: URLs anchor to the repo root and must land inside it (contract: db/custom.db). ` +
+        `Fix the URL or unset the ambient DATABASE_URL.`,
+    );
+  }
+  console.warn(
+    `[db] NOTICE: DATABASE_URL="${url}" is an absolute override landing OUTSIDE the repo root:\n` +
+      `[db]   → ${file}\n` +
+      `[db] repo contract would be: ${join(ROOT, "db", "custom.db")}`,
+  );
+}
+
+// ── Studio data projection (flat-object scan + brace-matched users) ─────────────
 
 function str(obj, key) {
   return new RegExp(`${key}:\\s*"([^"]*)"`).exec(obj)?.[1] ?? null;
@@ -72,44 +100,31 @@ function num(obj, key) {
   return match ? Number(match[1]) : null;
 }
 
-function bool(obj, key) {
-  const match = new RegExp(`${key}:\\s*(true|false)`).exec(obj);
-  return match ? match[1] === "true" : null;
-}
-
-function extractCatalog() {
-  const source = readFileSync(join(ROOT, "src", "data", "catalog.ts"), "utf8");
-  // Flat objects (products, categories, addresses, carousel, nav links…):
-  // product/category bodies contain arrays but no nested braces, so the
-  // flat-object scan is safe — same posture as generate-sitemap.mjs.
+function extractStudio() {
+  const source = readFileSync(join(ROOT, "src", "data", "studio.ts"), "utf8");
+  // Flat objects (services, gallery works): bodies contain strings but no
+  // nested braces, so the flat-object scan is safe — same posture as
+  // generate-sitemap.mjs.
   const flat = source.match(/\{[^{}]*\}/gs) ?? [];
-  const products = [];
-  const categories = [];
+  const services = [];
+  const works = [];
   for (const obj of flat) {
-    if (/priceCents:/.test(obj) && /slug:/.test(obj)) {
-      products.push({
+    if (/durationMin:/.test(obj) && /serviceId|category:/.test(obj) && !/featuredOrder:/.test(obj)) {
+      services.push({
         id: str(obj, "id"),
-        slug: str(obj, "slug"),
         name: str(obj, "name"),
-        category: str(obj, "category"),
-        priceCents: num(obj, "priceCents"),
-        compareAtCents: num(obj, "compareAtCents"),
-        rating: num(obj, "rating"),
-        reviewCount: num(obj, "reviewCount"),
-        stock: num(obj, "stock"),
-        visible: bool(obj, "visible") ?? true,
-        featured: bool(obj, "featured") ?? false,
-        isNew: bool(obj, "isNew") ?? false,
-        image: str(obj, "image") ?? "",
         description: str(obj, "description") ?? "",
-        shippingNote: str(obj, "shippingNote") ?? "",
+        durationMin: num(obj, "durationMin") ?? 0,
+        category: str(obj, "category") ?? "signature",
       });
-    } else if (/blurb:/.test(obj) && !/priceCents:/.test(obj)) {
-      categories.push({
+    } else if (/featuredOrder:/.test(obj) && /image:/.test(obj)) {
+      const orderMatch = /featuredOrder:\s*(\d+|null)/.exec(obj);
+      works.push({
         id: str(obj, "id"),
         name: str(obj, "name"),
-        blurb: str(obj, "blurb") ?? "",
+        category: str(obj, "category") ?? "classic",
         image: str(obj, "image") ?? "",
+        featuredOrder: orderMatch && orderMatch[1] !== "null" ? Number(orderMatch[1]) : null,
       });
     }
   }
@@ -147,34 +162,25 @@ function extractCatalog() {
     }
   }
 
-  return { products, categories, users };
+  return { services, works, users };
 }
 
 // ── Schema + seed ────────────────────────────────────────────────────────────
 
 const SCHEMA = `
-CREATE TABLE IF NOT EXISTS categories (
+CREATE TABLE IF NOT EXISTS services (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  blurb TEXT NOT NULL,
-  image TEXT NOT NULL
+  description TEXT NOT NULL,
+  duration_min INTEGER NOT NULL,
+  category TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS gallery_works (
   id TEXT PRIMARY KEY,
-  slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   category TEXT NOT NULL,
-  price_cents INTEGER NOT NULL,
-  compare_at_cents INTEGER,
-  rating REAL NOT NULL,
-  review_count INTEGER NOT NULL,
-  stock INTEGER NOT NULL,
-  visible INTEGER NOT NULL,
-  featured INTEGER NOT NULL,
-  is_new INTEGER NOT NULL,
   image TEXT NOT NULL,
-  description TEXT NOT NULL,
-  shipping_note TEXT NOT NULL
+  featured_order INTEGER
 );
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
@@ -183,21 +189,31 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT NOT NULL,
   password_hash TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS booking_requests (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  service_id TEXT NOT NULL,
+  date TEXT NOT NULL,
+  time_slot TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  user_id TEXT,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
 `;
 
 function init(db) {
   db.exec(SCHEMA);
 }
 
-function seed(db, catalog) {
-  const insertCategory = db.prepare(
-    "INSERT OR REPLACE INTO categories (id, name, blurb, image) VALUES (?, ?, ?, ?)",
+function seed(db, studio) {
+  const insertService = db.prepare(
+    "INSERT OR REPLACE INTO services (id, name, description, duration_min, category) VALUES (?, ?, ?, ?, ?)",
   );
-  const insertProduct = db.prepare(
-    `INSERT OR REPLACE INTO products
-     (id, slug, name, category, price_cents, compare_at_cents, rating,
-      review_count, stock, visible, featured, is_new, image, description, shipping_note)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  const insertWork = db.prepare(
+    "INSERT OR REPLACE INTO gallery_works (id, name, category, image, featured_order) VALUES (?, ?, ?, ?, ?)",
   );
   const insertUser = db.prepare(
     "INSERT OR REPLACE INTO users (id, email, name, role, password_hash) VALUES (?, ?, ?, ?, ?)",
@@ -205,30 +221,14 @@ function seed(db, catalog) {
 
   db.exec("BEGIN");
   try {
-    for (const c of catalog.categories) {
-      insertCategory.run(c.id, c.name, c.blurb, c.image);
+    for (const s of studio.services) {
+      insertService.run(s.id, s.name, s.description, s.durationMin, s.category);
     }
-    for (const p of catalog.products) {
-      insertProduct.run(
-        p.id,
-        p.slug,
-        p.name,
-        p.category,
-        p.priceCents,
-        p.compareAtCents,
-        p.rating,
-        p.reviewCount,
-        p.stock,
-        p.visible ? 1 : 0,
-        p.featured ? 1 : 0,
-        p.isNew ? 1 : 0,
-        p.image,
-        p.description,
-        p.shippingNote,
-      );
+    for (const w of studio.works) {
+      insertWork.run(w.id, w.name, w.category, w.image, w.featuredOrder);
     }
-    // Password digests at rest (R5-01) — inserted as-is, never logged.
-    for (const u of catalog.users) {
+    // Password digests at rest — inserted as-is, never logged.
+    for (const u of studio.users) {
       insertUser.run(u.id, u.email, u.name, u.role, u.passwordHash);
     }
     db.exec("COMMIT");
@@ -238,9 +238,9 @@ function seed(db, catalog) {
   }
 
   return {
-    categories: catalog.categories.length,
-    products: catalog.products.length,
-    users: catalog.users.length,
+    services: studio.services.length,
+    works: studio.works.length,
+    users: studio.users.length,
   };
 }
 
@@ -261,6 +261,7 @@ async function main() {
   }
 
   const file = targetFile(url);
+  auditContainment(url, file);
   mkdirSync(dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
 
@@ -275,16 +276,16 @@ async function main() {
         console.error("[db] no database at the resolved path — run npm run db:init first.");
         process.exit(1);
       }
-      const counts = seed(db, extractCatalog());
+      const counts = seed(db, extractStudio());
       console.log(
-        `db:seed → ${file} — ${counts.products} products, ${counts.categories} categories, ${counts.users} users`,
+        `db:seed → ${file} — ${counts.services} services, ${counts.works} gallery works, ${counts.users} users`,
       );
       return;
     }
     init(db);
-    const counts = seed(db, extractCatalog());
+    const counts = seed(db, extractStudio());
     console.log(
-      `db:setup → ${file} (${url}) — ${counts.products} products, ${counts.categories} categories, ${counts.users} users`,
+      `db:setup → ${file} (${url}) — ${counts.services} services, ${counts.works} gallery works, ${counts.users} users`,
     );
   } finally {
     db.close();

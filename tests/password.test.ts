@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEMO_USERS } from "@/data/studio";
 import {
   hashPassword,
   isHashedPassword,
@@ -78,5 +79,32 @@ describe("password hashing contract", () => {
     expect(stored).not.toContain("Demo1234!");
     // The record is only ever: prefix, hex salt, hex digest, separators.
     expect(stored).toMatch(/^s1\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+  });
+});
+
+describe("demo seed integrity — the documented credentials must actually work", () => {
+  it("every DEMO_USERS digest verifies against its documented password", async () => {
+    // Regression pin: the seed digests were once fabricated (never verified
+    // against sha256(salt:password)), so demo sign-in silently failed. The
+    // seed contract is now: documented password + hash-verified digest.
+    const seeds: ReadonlyArray<{ email: string; password: string; passwordHash: string }> = [
+      {
+        email: "demo@aurelia.studio",
+        password: "Aurelia-Demo-2025",
+        passwordHash: DEMO_USERS[0].passwordHash,
+      },
+      {
+        email: "guest@aurelia.studio",
+        password: "Aurelia-Guest-2025",
+        passwordHash: DEMO_USERS[1].passwordHash,
+      },
+    ];
+    expect(seeds).toHaveLength(DEMO_USERS.length);
+    for (const seed of seeds) {
+      const stored = DEMO_USERS.find((user) => user.email === seed.email);
+      expect(stored, `${seed.email} must exist in DEMO_USERS`).toBeDefined();
+      expect(await verifyPassword(seed.password, stored!.passwordHash)).toBe(true);
+      expect(await verifyPassword("wrong-password", stored!.passwordHash)).toBe(false);
+    }
   });
 });

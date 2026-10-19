@@ -90,37 +90,18 @@ export function Link({ href, children, className, onClick, ...rest }: LinkProps)
 }
 
 export function matchPath(path: string): { name: string; params: Record<string, string> } {
-  if (path === "/") return { name: "home", params: {} };
-  if (path === "/products") return { name: "products", params: {} };
-  const product = /^\/products\/([^/]+)$/.exec(path);
-  if (product?.[1]) return { name: "product", params: { slug: decodeURIComponent(product[1]) } };
-  // Reference-site URL shape: /product/{id}. Slug deep-links (/products/{slug}) stay supported.
-  const productAlt = /^\/product\/([^/]+)$/.exec(path);
-  if (productAlt?.[1]) return { name: "product", params: { slug: decodeURIComponent(productAlt[1]) } };
-  if (path === "/cart") return { name: "cart", params: {} };
-  if (path === "/checkout") return { name: "checkout", params: {} };
-  if (path === "/order-success") return { name: "order-success", params: {} };
-  if (path === "/account") return { name: "account", params: {} };
-  const accountOrder = /^\/account\/orders\/([^/]+)$/.exec(path);
-  if (accountOrder?.[1]) return { name: "account-order", params: { id: decodeURIComponent(accountOrder[1]) } };
-  if (path === "/login") return { name: "login", params: {} };
-  if (path === "/register") return { name: "register", params: {} };
-  if (path === "/about") return { name: "about", params: {} };
-  if (path === "/contact") return { name: "contact", params: {} };
-  if (path === "/track-order") return { name: "track-order", params: {} };
-  if (path === "/privacy-policy") return { name: "privacy-policy", params: {} };
-  if (path === "/terms-of-service") return { name: "terms-of-service", params: {} };
-  if (path === "/refund-policy") return { name: "refund-policy", params: {} };
-  if (path === "/cookie-policy") return { name: "cookie-policy", params: {} };
-  if (path === "/disclaimer") return { name: "disclaimer", params: {} };
-  if (path === "/admin" || path === "/admin/dashboard") return { name: "admin-dashboard", params: {} };
-  if (path === "/admin/products") return { name: "admin-products", params: {} };
-  if (path === "/admin/orders") return { name: "admin-orders", params: {} };
-  if (path === "/admin/analytics") return { name: "admin-analytics", params: {} };
-  if (path === "/admin/categories") return { name: "admin-categories", params: {} };
-  if (path === "/admin/carousel") return { name: "admin-carousel", params: {} };
-  if (path === "/admin/settings") return { name: "admin-settings", params: {} };
-  const adminOrder = /^\/admin\/orders\/([^/]+)$/.exec(path);
-  if (adminOrder?.[1]) return { name: "admin-order", params: { id: decodeURIComponent(adminOrder[1]) } };
+  // Canonical routes are lowercase; the reference router is case-insensitive
+  // ("/Gallery" and "/gallery" both render — Verified) so matching normalizes.
+  const normalized = path.toLowerCase();
+  if (normalized === "/" || normalized === "/home") return { name: "home", params: {} };
+  if (normalized === "/gallery") return { name: "gallery", params: {} };
+  if (normalized === "/services") return { name: "services", params: {} };
+  if (normalized === "/about") return { name: "about", params: {} };
+  if (normalized === "/booking") return { name: "booking", params: {} };
+  if (normalized === "/login") return { name: "login", params: {} };
+  if (normalized === "/register") return { name: "register", params: {} };
+  if (normalized === "/reset") return { name: "reset", params: {} };
+  if (normalized === "/account") return { name: "account", params: {} };
+  if (normalized === "/admin/bookings") return { name: "admin-bookings", params: {} };
   return { name: "not-found", params: {} };
 }

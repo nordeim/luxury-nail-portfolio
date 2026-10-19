@@ -3,60 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>HomeNest Kitchen</title>
+    <title>Aurelia Nail Artistry</title>
     <!--
-      Static head set (session 8 — SEO workstream). Shape mirrors the live
-      reference's head (measured 2026-10-12): description, OG + Twitter set,
-      media-CDN logo favicon. HeadManager rewrites title/description/
-      canonical/og:url per route on mount; these values are the first-paint
-      and no-JS fallbacks. The origin below is the documented VITE_SITE_URL
+      Static head set. Shape mirrors the live reference's head (measured
+      2026-10-19): description, OG + Twitter set, per-route title map handled
+      by HeadManager after first paint — these values are the first-paint and
+      no-JS fallbacks. The origin below is the documented VITE_SITE_URL
       default (http://localhost:4173) — override it in .env and re-run
       `node scripts/generate-sitemap.mjs` when deploying elsewhere.
+      Fonts: Cormorant Garamond (display) + Inter (body), matching the
+      reference's measured families (docs/reference-investigation.md §4).
     -->
     <meta
       name="description"
-      content="Your professional destination for premium kitchen essentials, organized storage solutions, and gourmet cooking tools designed to elevate your culinary experience."
+      content="Aurelia Nail Artistry — bespoke luxury nail design in Los Angeles. Editorial, bridal, and avant-garde nail artistry by Aurelia Chen."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#fbfaf9" />
+    <meta name="theme-color" content="#f5f3ef" />
     <link rel="canonical" href="http://localhost:4173/" />
-    <!-- Favicon: remote-CDN logo pin, per the ecommerce-store template's
-         FAVICON-1 precedent (no shipped binary, pixel parity with the
-         reference's own icon). -->
+    <!-- Favicon: inline SVG monogram "A" on the brand ink — independently
+         created, no external binary, dark-mode safe. -->
     <link
       rel="icon"
-      type="image/png"
-      href="https://media.base44.com/images/public/69d42a22d48136041e198f55/2d5ea29ee_logo.png/v1/fit/w_180,h_180/2d5ea29ee_logo.png"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%231a1a1a'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-size='36' fill='%23f5f3ef' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E"
     />
-    <!-- PWA manifest (R18-01, superset — the reference ships no manifest):
-         minimal installability surface; icons reuse the FAVICON-1 CDN logo
-         at the two install-required sizes. Root-relative start_url/scope
-         keep it deploy-origin agnostic. -->
+    <!-- PWA manifest (superset — the reference ships no manifest). -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <!-- OpenGraph (reference head shape) -->
-    <meta property="og:title" content="HomeNest Kitchen" />
+    <meta property="og:title" content="Aurelia Nail Artistry" />
     <meta
       property="og:description"
-      content="Your professional destination for premium kitchen essentials, organized storage solutions, and gourmet cooking tools designed to elevate your culinary experience."
+      content="Aurelia Nail Artistry — bespoke luxury nail design in Los Angeles. Editorial, bridal, and avant-garde nail artistry by Aurelia Chen."
     />
-    <meta
-      property="og:image"
-      content="https://media.base44.com/images/public/69d42a22d48136041e198f55/2d5ea29ee_logo.png/v1/fill/w_1200,h_630/2d5ea29ee_logo.png"
-    />
+    <meta property="og:image" content="http://localhost:4173/images/hero.jpg" />
     <meta property="og:url" content="http://localhost:4173/" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="HomeNest Kitchen" />
+    <meta property="og:site_name" content="Aurelia Nail Artistry" />
     <!-- Twitter card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="HomeNest Kitchen" />
+    <meta name="twitter:title" content="Aurelia Nail Artistry" />
     <meta
       name="twitter:description"
-      content="Your professional destination for premium kitchen essentials, organized storage solutions, and gourmet cooking tools designed to elevate your culinary experience."
+      content="Aurelia Nail Artistry — bespoke luxury nail design in Los Angeles. Editorial, bridal, and avant-garde nail artistry by Aurelia Chen."
     />
-    <meta
-      name="twitter:image"
-      content="https://media.base44.com/images/public/69d42a22d48136041e198f55/2d5ea29ee_logo.png/v1/fill/w_1200,h_630/2d5ea29ee_logo.png"
-    />
+    <meta name="twitter:image" content="http://localhost:4173/images/hero.jpg" />
     <meta name="twitter:url" content="http://localhost:4173/" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -65,26 +55,35 @@
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
       rel="stylesheet"
     />
-    <!-- Structured data: one node per script (CSP-exempt static blocks;
-         the reference ships none — SEO superset member, ecommerce-store
-         template JSON-LD-1 shape). -->
+    <!-- Structured data: one node per script. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "HomeNest Kitchen",
+        "@type": "NailSalon",
+        "name": "Aurelia Nail Artistry",
         "url": "http://localhost:4173",
-        "logo": "https://media.base44.com/images/public/69d42a22d48136041e198f55/2d5ea29ee_logo.png/v1/fill/w_1200,h_630/2d5ea29ee_logo.png"
+        "image": "http://localhost:4173/images/hero.jpg",
+        "telephone": "+1-310-555-0123",
+        "email": "hello@aurelia-nails.com",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "8423 Melrose Place",
+          "addressLocality": "Los Angeles",
+          "addressRegion": "CA",
+          "postalCode": "90069",
+          "addressCountry": "US"
+        },
+        "openingHours": "Tu-Sa 10:00-18:00"
       }
     </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": "HomeNest Kitchen",
+        "name": "Aurelia Nail Artistry",
         "url": "http://localhost:4173"
       }
     </script>

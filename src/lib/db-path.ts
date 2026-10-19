@@ -50,7 +50,7 @@ export function resolveDbPath(url: string = DATABASE_URL, schemaDir: string = SC
 
 /**
  * Path of the database file relative to the repo root. For the default URL this
- * is `db/custom.db` — the db/ folder at the root of the homenest-store-g repo.
+ * is `db/custom.db` — the db/ folder at the root of the luxury-nail-portfolio repo.
  */
 export function dbPathFromRepoRoot(url: string = DATABASE_URL): string {
   const resolved = resolveDbPath(url);

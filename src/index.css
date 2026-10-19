@@ -1,172 +1,146 @@
 @import "tailwindcss";
 
 /*
-  Tailwind v4 CSS-first tokens — mirrors the reference design system
-  (nest-culinary-hub.base44.app), measured live 2026-10-12 via getComputedStyle.
+  Aurelia Nail Artistry — Tailwind v4 CSS-first tokens.
 
-  Trap-log pins (kept from the v3-parity audit):
-  1. Theme colors are full hsl() literals — bare `H S% L%` triplets resolve transparent.
+  Reference palette measured live 2026-10-19 via getComputedStyle
+  (docs/reference-investigation.md §4):
+    body background  rgb(245,243,239) — warm cream
+    dark surfaces    rgb(26,26,26)    — footer / dark bands / dark CTAs
+    display font     "Cormorant Garamond", serif (h1 128px / 400)
+    body font        Inter, sans-serif
+
+  Architecture: semantic CSS variables flip under `.dark`; `@theme inline`
+  binds Tailwind utilities to the variables so every background, text, and
+  border utility follows the theme (shadcn-v4 pattern). Values are full color
+  literals — bare `H S% L%` triplets resolve to transparent (trap 1).
+
+  Trap-log pins (docs/Tailwind-V4-Validation-Report.md — kept from the
+  v3-parity audits; measured tokens, never eyeballed class names):
+  1. Theme colors are full color literals (see above).
   2. shadow-sm pinned to v3 geometry (v4 moved the scale one notch).
-  3. Hero overlays use explicit linear-gradient(), not bg-gradient-to-* (v4 oklab drift).
-  4. space-y-* is inert on inline first children in v4 — use explicit mt-* on blocks.
-  5. backdrop-filter creates a containing block for fixed descendants: the mobile
-     menu is portaled to <body>, never nested inside the blurred sticky header.
-  9. v4 wraps every hover: utility in @media (hover: hover) — the v3-era reference
-     applies hover unconditionally (including no-hover contexts and iOS sticky-tap).
-     The @custom-variant override below restores the reference's behavior.
+  3. Hero overlays use explicit linear-gradient(), not bg-gradient-to-*
+     (v4 interpolates gradients in oklab; sRGB parity needs the arbitrary form).
+  4. space-y-* loses to explicit mt-* children in v4 (zero-specificity
+     :where()) — stacked containers use gap-*; the mobile menu panel carries
+     no mt-* children (pinned by tests/e2e/mobile-navigation.spec.ts).
+  5. backdrop-filter creates a containing block for fixed descendants: the
+     mobile menu is portaled to <body>, never nested inside the header.
+  6. v4 wraps hover: in @media (hover:hover); the @custom-variant below
+     restores unconditional hover for touch-emulated parity testing.
+
+  Dark mode (clone superset — the reference ships none): class strategy.
+  In v4 the `dark:` variant follows prefers-color-scheme by default; the
+  @custom-variant re-binds it to the `.dark` class on <html>. Dark editorial
+  inversion: near-black ground, cream ink, dark bands become cream.
 */
-
-/* Session-36 (F36-01): override the built-in hover variant so hover: utilities
-   emit un-gated `&:hover` rules (v3 behavior, matching the reference). Without
-   this, v4 media-gates hovers and they never fire under touch emulation —
-   pinned by the mobile-project trigger-hover spec (AGENTS.md trap #9). */
 @custom-variant hover (&:hover);
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-  /* Session-34 re-measurement: the reference's body font is Inter (self-
-     hosted, weights 300–700). Inter loads via Google Fonts like Playfair
-     Display; the system stack stays as the offline fallback. */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-
-  /* shadcn-style semantic palette, measured from the reference */
-  --color-background: hsl(30 25% 98%);
-  --color-foreground: hsl(20 15% 10%);
-  --color-primary: hsl(24 70% 50%);
-  --color-primary-dark: hsl(24 70% 43%);
-  --color-primary-foreground: hsl(0 0% 100%);
-  /* Session-38 re-measurement: the reference's CTA button paints a CREAM
-     pill — bg rgb(243,238,232) = hsl(33 31% 93%), text rgb(44,36,33) =
-     hsl(20 15% 15%) (measured live; the old v1 values were approximations). */
-  --color-secondary: hsl(33 31% 93%);
-  --color-secondary-foreground: hsl(20 15% 15%);
-  --color-muted: hsl(30 15% 94%);
-  --color-muted-foreground: hsl(20 10% 45%);
-  --color-accent: hsl(160 40% 45%);
-  --color-accent-soft: hsl(160 40% 95%);
-  --color-destructive: hsl(0 72% 51%);
-  --color-border: hsl(30 15% 88%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(20 15% 10%);
-  /* Translucent WHITE/80 glass surface — the STICKY HEADER since session-36
-     (the reference's nav root measures rgba(255,255,255,0.8) with a 24px
-     backdrop frost; the v1 port had shipped bg-card/95 + blur(8px)). The
-     menu panel body itself went SOLID bg-card in the same session — the
-     session-4 "translucent panel" pin had measured this header row, not
-     the panel body. Alpha baked into the token on purpose: Tailwind v4's
-     /NN opacity modifiers color-mix in oklab and would compute to oklab(...)
-     instead of the reference's sRGB value (same class of trap as T-3). */
-  --color-panel: hsl(0 0% 100% / 0.8);
-  /* Session-36 (F36-05): 0.5-alpha hairline under the sticky header and on
-     the menu panel's bottom edge (reference: rgba(229,224,220,0.5) = its
-     border-border/50; the clone's --color-border is the same solid color,
-     so baking the alpha reproduces the reference exactly). */
-  --color-border-soft: hsl(30 15% 88% / 0.5);
-  /* Session-36 (F36-07): the reference hero paragraph is text-white/80 —
-     rgba(255,255,255,0.8) computed. Alpha baked (T-13). */
-  --color-hero-body: hsl(0 0% 100% / 0.8);
-  /* Session-36 (F36-09): idle carousel dots render rgba(255,255,255,0.4). */
-  --color-dot-idle: hsl(0 0% 100% / 0.4);
-  /* Session-36 (F36-10): hero carousel arrow discs render
-     rgba(255,255,255,0.1) with a 12px frost. */
-  --color-frost: hsl(0 0% 100% / 0.1);
-  --color-ring: hsl(24 70% 50%);
-  /* Session-38 re-measurement: the reference's STARS fill amber-400 —
-     rgb(251,191,36) = #fbbf24 exactly (hex avoids hsl rounding drift;
-     the pin asserts the exact rgb string). The "Featured" card pill is
-     now bg-primary orange (product.tsx) — the old "badge amber pill"
-     reading is superseded; this token owns the star/rating amber only. */
-  --color-badge: #fbbf24;
-  /* Session-30 re-measurement (2026-10-14): the reference footer now uses
-     bg-foreground — hsl(20 15% 10%) = rgb(29,24,22) — on fresh loads of /
-     and /products, both viewports (was hsl(24 14% 11%) = rgb(32,27,24),
-     measured sessions 3/4–27). The semantic token stays so the footer
-     remains an independently re-measurable surface; the value tracks
-     --color-foreground exactly. */
-  --color-footer: hsl(20 15% 10%);
-  /* Session-34 re-measurement (2026-10-14): the reference footer's contained
-     1px divider computes rgba(251,250,249,0.1) (its bg-background/10). Alpha
-     baked into the token for the same reason as --color-panel: Tailwind v4's
-     /10 modifier would color-mix in oklab and compute to oklab(...) instead
-     of the reference's sRGB value. */
-  --color-footer-rule: hsl(30 25% 98% / 0.1);
-  /* Session-38 (F38-06): the reference's hover-revealed quick-add pill —
-     bg-card/90 computes rgba(255,255,255,0.9) on the v3-era reference;
-     alpha baked (T-13) because v4 /90 color-mixes in oklab. */
-  --color-quick-add: hsl(0 0% 100% / 0.9);
-  /* Session-38 (F38-09): the CTA button's hover state — the cream at
-     0.8 alpha (measured rgba(243,238,232,0.8); alpha baked, T-13). */
-  --color-secondary-hover: hsl(33 31% 93% / 0.8);
-  /* Session-38 (F38-08): the FeatureBar icon disc — bg-primary/10
-     computes rgba(217,110,38,0.1) on the reference; alpha baked (T-13). */
-  --color-primary-film: hsl(24 70% 50% / 0.1);
-  /* Session-39 (F39-03): the reference PDP gallery tile — its bg-muted/30
-     computes rgba(242,240,237,0.3) on the v3-era reference; alpha baked
-     (T-13 pattern) because v4's /30 modifier color-mixes in oklab and
-     would serialize as oklab(...) instead of the reference's sRGB value.
-     The card image tiles keep bg-muted/30 (invisible under the photo). */
-  --color-gallery: hsl(30 15% 94% / 0.3);
-  /* Session-41 (F41-09): the checkout payment option's selected state —
-     bg-primary/5 computes rgba(217,110,38,0.05) on the reference; alpha
-     baked (T-13 pattern). */
-  --color-primary-faint: hsl(24 70% 50% / 0.05);
-  /* Session-41 (F41-20): the reference cart OS carries an AMBER COD box —
-     amber-50 bg / amber-200 border / amber-800 title / amber-700 body,
-     measured rgb(255,251,235) / rgb(253,230,138) / rgb(146,64,14) /
-     rgb(180,83,9). Dedicated tokens (T-13 doctrine: measured sRGB wins;
-     badge-tinted alphas would color-mix in oklab). */
-  --color-cod-bg: rgb(255 251 235);
-  --color-cod-border: rgb(253 230 138);
-  --color-cod-title: rgb(146 64 14);
-  --color-cod-body: rgb(180 83 9);
-  /* Session-42 (F42-04): the success-page order pill's border — the
-     reference's border-primary/20 computes rgba(217,110,38,0.2); alpha
-     baked (T-13 pattern). */
-  --color-primary-line: hsl(24 70% 50% / 0.2);
-  /* Session-42 (F42-05): the success-page COD variant is the LARGE amber
-     box — a 40px amber-100 disc (rgb(254,243,199)) with a 20px amber-600
-     Banknote glyph (rgb(217,119,6)) and a 16px/600 amber-900 title
-     (rgb(120,53,15)). Measured sRGB, token-backed (T-13 doctrine). */
-  --color-cod-disc: rgb(254 243 199);
-  --color-cod-disc-icon: rgb(217 119 6);
-  --color-cod-title-strong: rgb(120 53 15);
-
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  /* Session-38 (F38-01): v3 shadow-md geometry — the reference's category
-     gradient discs ship shadow-md; v4 moved the scale one notch (T-2), so
-     the v3 geometry is pinned here explicitly. */
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  /* Session-38 (F38-04): v3 shadow-xl geometry — the reference's card
-     hover shadow; v4's default xl is visibly heavier (T-2). */
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-card: 0 1px 3px 0 rgb(28 25 23 / 0.06), 0 1px 2px -1px rgb(28 25 23 / 0.06);
-  --shadow-pop: 0 10px 38px -10px rgb(28 25 23 / 0.22), 0 10px 20px -15px rgb(28 25 23 / 0.2);
-  --shadow-drawer: -8px 0 32px rgb(28 25 23 / 0.16);
-  --shadow-toast: 0 12px 32px rgb(28 25 23 / 0.18);
-
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --radius-2xl: 1.5rem;
-
-  --z-sticky: 300;
-  --z-dropdown: 350;
-  --z-overlay: 400;
-  --z-modal: 500;
-  --z-toast: 800;
+:root {
+  --background: #f5f3ef; /* rgb(245,243,239) measured — hex pin, hsl rounding drifts 1 unit */
+  --foreground: hsl(30 8% 12%);
+  --surface: hsl(40 30% 92%);
+  --surface-raised: hsl(40 25% 98%);
+  --muted-foreground: hsl(30 6% 40%);
+  --hairline: hsl(30 10% 87%);
+  --ink-soft: hsl(30 6% 32%);
+  --gold: hsl(36 41% 62%);
+  /* Dark bands (footer, philosophy, dark CTAs) — measured rgb(26,26,26). */
+  --band: #1a1a1a;
+  --band-foreground: hsl(0 0% 100%);
+  --band-muted: rgba(255, 255, 255, 0.8); /* measured footer body text */
+  --band-hairline: hsl(0 0% 100% / 0.2);
+  /* Hero sits on photography in BOTH themes — static, never flips. */
+  --hero-ink: hsl(0 0% 100%);
+  --hero-ink-soft: hsl(0 0% 100% / 0.8);
+  --hero-pill: #f5f3ef;
+  --hero-pill-ink: hsl(30 8% 12%);
+  --hero-pill-soft: hsl(40 33% 95% / 0.8);
 }
 
-/* Session-38 (F38-03): the reference's product-row carousels hide their
-   scrollbars (its own scrollbar-hide utility). v4 has no built-in
-   equivalent, so it is defined here as a custom utility. */
-@utility scrollbar-hide {
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
+.dark {
+  --background: #13110f; /* rgb(19,17,15) designed dark ground — hex pin, hsl rounding drifts 1 unit */
+  --foreground: hsl(40 33% 95%);
+  --surface: hsl(30 9% 11%);
+  --surface-raised: hsl(30 8% 14%);
+  --muted-foreground: hsl(40 12% 66%);
+  --hairline: hsl(40 33% 95% / 0.14);
+  --ink-soft: hsl(40 20% 82%);
+  --gold: hsl(38 44% 66%);
+  /* Editorial inversion: cream bands on near-black ground (hex pins, same
+     rounding doctrine as the light block). */
+  --band: #f5f3ef;
+  --band-foreground: #13110f;
+  --band-muted: rgba(19, 17, 15, 0.7);
+  --band-hairline: rgba(19, 17, 15, 0.2);
+}
+
+@theme inline {
+  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-hairline: var(--hairline);
+  --color-ink-soft: var(--ink-soft);
+  --color-gold: var(--gold);
+  --color-band: var(--band);
+  --color-band-foreground: var(--band-foreground);
+  --color-band-muted: var(--band-muted);
+  --color-band-hairline: var(--band-hairline);
+  --color-hero-ink: var(--hero-ink);
+  --color-hero-ink-soft: var(--hero-ink-soft);
+  --color-hero-pill: var(--hero-pill);
+  --color-hero-pill-ink: var(--hero-pill-ink);
+  --color-hero-pill-soft: var(--hero-pill-soft);
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-card: 0 1px 3px 0 rgb(20 17 15 / 0.06), 0 1px 2px -1px rgb(20 17 15 / 0.06);
+  --shadow-lift: 0 18px 38px -12px rgb(20 17 15 / 0.28);
+  --shadow-toast: 0 12px 32px rgb(20 17 15 / 0.18);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+
+  --z-sticky: 300;
+  --z-overlay: 400;
+  --z-toast: 800;
+
+  --animate-fade-up: fade-up 0.7s ease-out both;
+  --animate-fade-in: fade-in 0.5s ease-out both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
 html {
@@ -176,9 +150,10 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--color-background);
-  color: var(--color-foreground);
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
@@ -186,12 +161,12 @@ body {
 }
 
 ::selection {
-  background: hsl(24 70% 50% / 0.22);
-  color: var(--color-foreground);
+  background: hsl(36 41% 62% / 0.3);
+  color: var(--foreground);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-ring);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 

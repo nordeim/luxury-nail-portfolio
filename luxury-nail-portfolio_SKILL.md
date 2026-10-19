@@ -12,12 +12,14 @@ version: 1.0.0
 last_updated: 2026-10-19
 project_state: >-
   COMPLETE AND GREEN — typecheck ✓ lint ✓ 81/81 unit ✓ 178/178 e2e ✓
-  production build (439 KB single file) ✓ review rounds R1-R4 executed (theme
+  production build (439 KB single file) ✓ review rounds R1-R5 executed (theme
   switching remediated: two-state toggle + pre-paint script; axe 4.14 Label-in-Name
   fixed; sitemap lastmod + SEO hardening: soft-404 noindex, /home alias canonical,
   social-card meta, icon surfaces, JSON-LD enrichment; R4: case-variant lowercase
-  canonical, private-surface noindex, theme-color follows the resolved theme) ✓
-  capture sweeps through R4 (26 verified PNGs) ✓ pushed to origin/main.
+  canonical, private-surface noindex, theme-color follows the resolved theme;
+  R5: R4 fixes re-verified live, auth-page platform-chrome divergence documented
+  as a deviation) ✓ capture sweeps through R5 (29 verified PNGs) ✓ pushed to
+  origin/main.
 ---
 
 # Aurelia Nail Artistry — Codebase Engineering SKILL

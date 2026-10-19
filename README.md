@@ -141,11 +141,12 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 | [`docs/remediation-plan-aurelia-r2.md`](docs/remediation-plan-aurelia-r2.md) | Review-round R2: theme-switching root-cause analysis + fixes (pre-paint script, two-state cycle), axe 4.14 Label-in-Name isolation |
 | [`docs/remediation-plan-aurelia-r3.md`](docs/remediation-plan-aurelia-r3.md) | Review-round R3: sitemap/SEO audit vs the ecommerce-store template + live reference; lastmod, soft-404 noindex, alias canonical, social-card meta, icon surfaces, JSON-LD enrichment |
 | [`docs/remediation-plan-aurelia-r4.md`](docs/remediation-plan-aurelia-r4.md) | Review-round R4: R3 validation + canonical case-variant consolidation, private-surface noindex, theme-color sync, doc-drift sweep |
+| [`docs/remediation-plan-aurelia-r5.md`](docs/remediation-plan-aurelia-r5.md) | Review-round R5: R4 validation + live regression verification of every fix; auth-page platform-chrome divergence documented in the deviations ledger (R5-01) |
 | [`Project_Architecture_Document.md`](Project_Architecture_Document.md) | Full engineering reference: ADRs, topology, layer model, data architecture, security |
 | [`AGENTS.md`](AGENTS.md) | Agent rulebook: commands, conventions, framework traps |
 | [`CLAUDE.md`](CLAUDE.md) | Session-playbook for AI coding agents |
 | [`docs/Tailwind-V4-Validation-Report.md`](docs/Tailwind-V4-Validation-Report.md) | The five v4 engine traps and the validated remediation patterns |
-| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round comparison sets (14–17 R1, 18–20 R2, 21–23 R3, 24–26 R4); prior-project captures under `legacy-homenest/` |
+| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round comparison sets (14–17 R1, 18–20 R2, 21–23 R3, 24–26 R4, 27–29 R5); prior-project captures under `legacy-homenest/` |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Static-host deployment notes |
 | [`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`](docs/how-to-git-push-using-ssh-wrapper_SKILL.md) | Deploy-key push procedure (`ssh_git_wrapper_v3.py`) |
 
@@ -165,6 +166,6 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 
 ## Status
 
-Complete and green as of 2026-10-19 (review round R4): reference investigation ✓ · full clone implemented ✓ · **81/81 unit ✓ · 178/178 e2e ✓** · typecheck/lint/build ✓ · theme switching remediated (R2-01) + axe 4.14 Label-in-Name fixed (R2-02) ✓ · sitemap `lastmod` + SEO hardening (R3) ✓ · **R4 hardening: canonical case-variant consolidation, private-surface noindex, theme-color follows the resolved theme** ✓ · dev-server capture sweeps ✓ · all four root docs + distilled skill + DEPLOYMENT guide generated ✓.
+Complete and green as of 2026-10-19 (review round R5): reference investigation ✓ · full clone implemented ✓ · **81/81 unit ✓ · 178/178 e2e ✓** · typecheck/lint/build ✓ · theme switching remediated (R2-01) + axe 4.14 Label-in-Name fixed (R2-02) ✓ · sitemap `lastmod` + SEO hardening (R3) ✓ · R4 hardening: canonical case-variant consolidation, private-surface noindex, theme-color follows the resolved theme ✓ · **R5 validation: every R4 fix re-verified live; auth-page platform-chrome divergence documented (R5-01)** ✓ · dev-server capture sweeps ✓ · all four root docs + distilled skill + DEPLOYMENT guide generated ✓.
 
 No license file is bundled — all rights reserved by the repository owner.

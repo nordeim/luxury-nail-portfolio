@@ -87,6 +87,7 @@ No AI features observed → none implemented. Nothing to stub. (Recorded so the 
 | Copyright year | "© 2024" | "© 2025" | Production-grade currency | Assumed |
 | Routes | `/Gallery` hrefs observed (case-insensitive router) | Canonical lowercase paths (`/gallery`…) | Clean URLs; reference normalizes anyway | Reasoned |
 | PORTFOLIO nav item | href `/Home` (lands on home) | `/#portfolio` scroll-to-section on landing | Same observable outcome, explicit anchor | Reasoned |
+| Auth-page ground | Base44 **platform chrome**: white `rgb(255,255,255)` + system font stack (`ui-sans-serif, system-ui…`) on `/login` (all five studio routes are cream) — same chrome family as its 404 page and the excluded "Edit with Base44" badge | Studio design system on auth pages too: cream `#f5f3ef`, Cormorant/Inter, same tokens as every route | Platform chrome is not studio design (the reference itself doesn't style auth); the clone's real-accounts auth is a superset surface and stays visually coherent. Remeasured R5 (`remediation-plan-aurelia-r5.md` §3 R5-01) | Verified |
 
 ## 3. Design tokens (measured → `@theme`)
 

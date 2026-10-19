@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Aurelia Nail Artistry</title>
+    <!-- theme-color sits ABOVE the pre-paint script so the script can tint
+         the browser chrome in the same synchronous pass (R4-03) — a static
+         light value left the mobile URL bar cream while the page was dark. -->
+    <meta name="theme-color" content="#f5f3ef" />
     <script>
       /* Pre-paint theme resolution (R2-01, remediation-plan-aurelia-r2.md).
          The token blocks in index.css are light under :root; without this
@@ -26,6 +30,11 @@
           } else {
             document.documentElement.style.colorScheme = "light";
           }
+          /* R4-03: the browser chrome follows the same resolution — the
+             meta above is parsed by the time this runs. The hex literals
+             mirror the pinned token grounds in src/lib/theme.ts. */
+          var themeColor = document.querySelector('meta[name="theme-color"]');
+          if (themeColor) themeColor.setAttribute("content", dark ? "#13110f" : "#f5f3ef");
           document.documentElement.setAttribute(
             "data-theme-applied",
             dark ? "dark" : "light"
@@ -51,7 +60,6 @@
       content="Aurelia Nail Artistry — bespoke luxury nail design in Los Angeles. Editorial, bridal, and avant-garde nail artistry by Aurelia Chen."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#f5f3ef" />
     <link rel="canonical" href="http://localhost:4173/" />
     <!-- Favicon: inline SVG monogram "A" on the brand ink — independently
          created, no external binary, dark-mode safe. -->

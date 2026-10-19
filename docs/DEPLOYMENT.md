@@ -1,7 +1,7 @@
 # Deployment Guide
 
 Aurelia Nail Artistry ships as a **single-file Vite SPA** (`dist/index.html`,
-~438 KB / ~116.5 KB gzip) with zero server and zero external services — one
+~439 KB / ~116.8 KB gzip) with zero server and zero external services — one
 static artifact plus its asset folder. This guide covers the supported
 production paths and the environment contract.
 
@@ -29,9 +29,13 @@ the build regenerates them anyway.
 
 The served `index.html` carries a synchronous **pre-paint theme script** in
 `<head>` (remediation R2-01) that resolves the stored/OS theme before first
-paint. It is dependency-free, reads only `localStorage` +
-`matchMedia`, and needs no deploy-side consideration — it ships inside the
-single file like everything else.
+paint — and (R4-03) tints `meta[name=theme-color]` in the same pass, so the
+mobile browser chrome matches from the first frame. It is dependency-free,
+reads only `localStorage` + `matchMedia`, and needs no deploy-side
+consideration — it ships inside the single file like everything else. The
+`theme-color` meta sits ABOVE the script so it exists when the script runs;
+`applyTheme` (`src/lib/theme.ts`) keeps it synced on every toggle/OS change
+afterwards. Don't reorder the head or strip either piece.
 
 ## 2. Run (serve)
 
@@ -146,13 +150,14 @@ keys are namespaced and the pre-paint script reads the same key.
 ## 7. Verification checklist
 
 ```bash
-npm run verify && npm run e2e    # typecheck + lint + 79 unit + build + 172 E2E runs
+npm run verify && npm run e2e    # typecheck + lint + 81 unit + build + 178 E2E runs
 curl -s https://your-host/robots.txt        # admin disallowed + sitemap pointer
 curl -s https://your-host/sitemap.xml       # 7 static URLs at your origin, each with a W3C <lastmod>
 curl -s https://your-host/manifest.webmanifest # valid PWA manifest incl. the maskable icon entry
 curl -s -o /dev/null -w "%{http_code}" https://your-host/icon-180.png  # 200 — apple-touch icon served
 curl -s https://your-host/ | rg "data-theme-applied"   # pre-paint theme script present (R2-01)
 curl -s https://your-host/ | rg "og:image:width"       # social-card meta present (R3-02)
+curl -s https://your-host/ | rg 'theme-color'          # theme-color meta above the pre-paint script (R4-03)
 curl -s -o /dev/null -w "%{http_code}" https://your-host/gallery   # 200 — SPA fallback serves index.html
 ```
 
@@ -170,6 +175,8 @@ route (head contract live).
 | Wrong canonicals / sitemap URLs after deploying to a real domain | `VITE_SITE_URL` left at the default `http://localhost:4173` | Set `VITE_SITE_URL` and rebuild (§5); the prebuild hook rewrites the artifacts |
 | Page paints light first, then flips dark | The pre-paint theme script is missing from the served HTML (hand-edited head or a templating layer stripped it) | Restore the synchronous `<head>` script from the repo's `index.html` (R2-01); the e2e `pre-paint` pin guards it |
 | Theme toggle's first click does nothing visible | Pre-R2-01 bundle (the old `system → light → dark` cycle) | Rebuild from the current tree — the two-state cycle (R2-01) makes every activation flip the visible theme |
+| Mobile browser chrome (URL bar) stays cream while the page is dark | Pre-R4 bundle — `theme-color` was a static light value | Rebuild from the current tree; the pre-paint script + `applyTheme` sync `theme-color` with the resolved theme (R4-03) — keep the meta above the head script |
+| `/Gallery` (mixed case) shows itself as the canonical / a private page offers itself for indexing | Pre-R4 bundle — case variants self-canonicalized and private surfaces shipped `index, follow` | Rebuild from the current tree; known routes canonicalize to the sitemap's lowercase form (R4-01) and the robots contract is an indexable allowlist (R4-02) |
 | `db:setup` writes outside the repo / fails with "OUTSIDE the repo root" | An ambient `DATABASE_URL` is overriding the repo contract | Run `env -u DATABASE_URL npm run db:setup` (the containment audit refuses escaping relative URLs by design, ADR-002) |
 | `npm run e2e` fails to bind port 4173 | Stale preview server | `pkill -f "vite preview"`, or set `E2E_PORT` |
 | Playwright wants a newer browser than the cache holds | The lockfile bumped Playwright | `npx playwright install chromium` before the first e2e run after an install |

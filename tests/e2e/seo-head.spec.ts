@@ -80,6 +80,32 @@ test.describe("per-route head contract", () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
   });
 
+  test("a mixed-case route canonicalizes to the sitemap's lowercase form (R4-01)", async ({ page }) => {
+    // The router renders /Gallery as the gallery (case-insensitive, reference
+    // behavior) but the canonical space has one spelling per page — the
+    // lowercase one the sitemap generates.
+    await page.goto("/Gallery");
+    await expect(page).toHaveTitle("Gallery | Aurelia Nail Artistry");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      `${SITE_URL}/gallery`,
+    );
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+      "content",
+      `${SITE_URL}/gallery`,
+    );
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
+  });
+
+  test("private surfaces ship noindex on the served artifact (R4-02)", async ({ page }) => {
+    // robots.txt disallows these paths, but Disallow matching is
+    // case-sensitive — a case-variant URL bypasses it and gets crawled, so
+    // the head contract must agree that private surfaces are not for the
+    // index (defense in depth).
+    await page.goto("/account");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, follow");
+  });
+
   test("static head completes the social-card meta (R3-02)", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1344");

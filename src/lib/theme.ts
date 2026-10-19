@@ -30,6 +30,27 @@ export function applyTheme(theme: "light" | "dark"): void {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
   root.style.colorScheme = theme;
+  syncThemeColorMeta(theme);
+}
+
+/** Hex mirrors of the pinned token grounds (index.css: #f5f3ef light /
+ *  #13110f dark) — the mobile browser chrome tints from
+ *  meta[name=theme-color], so it must follow the resolved theme (R4-03),
+ *  not sit on a static light value while the page is dark. Defensive
+ *  no-op when the meta is absent (degrade-never-crash doctrine). */
+const THEME_COLOR: Record<"light" | "dark", string> = {
+  light: "#f5f3ef",
+  dark: "#13110f",
+};
+
+export function syncThemeColorMeta(theme: "light" | "dark"): void {
+  try {
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", THEME_COLOR[theme]);
+  } catch {
+    // No document / parsing edge: the toggle stays live regardless.
+  }
 }
 
 export function readStoredMode(): ThemeMode {

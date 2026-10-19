@@ -134,6 +134,22 @@ test.describe("dark mode", () => {
     // written by the script alone — its presence IS the pre-paint proof.
     await expect(page.locator("html")).toHaveAttribute("data-theme-applied", "dark");
     await expect(page.locator("html")).toHaveClass(/dark/);
+    // R4-03: the same synchronous pass tints the browser chrome to match —
+    // a dark user's URL bar never stays cream while the page is dark.
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#13110f");
+  });
+
+  test("theme-color meta follows the resolved theme (R4-03)", async ({ page }) => {
+    // The mobile browser chrome tints from meta[name=theme-color]; a static
+    // light value left it cream in dark mode (the chrome-level twin of the
+    // first-paint flash R2-01 killed). Both theming seams sync it now.
+    await page.addInitScript(() => localStorage.setItem("aurelia.theme", "dark"));
+    await page.goto("/");
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#13110f");
+
+    await (await openToggle(page)).click(); // dark → light
+    await expect(page.locator("html")).not.toHaveClass(/dark/);
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#f5f3ef");
   });
 
   test("all routes stay coherent in dark mode (no unreadable surfaces)", async ({ page }) => {

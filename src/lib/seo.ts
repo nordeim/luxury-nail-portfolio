@@ -36,10 +36,27 @@ export interface RouteMeta {
   canonicalUrl: string;
   /** Absolute og:url — query preserved. */
   ogUrl: string;
-  /** Robots directive — unknown paths are soft-404s and must not be
-   *  indexed (R3-04); every known route stays indexable. */
+  /** Robots directive — the sitemap's public routes (+ the /home alias)
+   *  are indexable; private surfaces and unknown paths (soft-404s) are
+   *  not (R3-04 soft-404s, R4-02 private surfaces). */
   robots: string;
 }
+
+// The indexable set — the sitemap's public routes plus the /home alias.
+// Deliberately an ALLOWLIST (fails closed): a future route added to the
+// title map without touching this set lands on noindex, not on the index.
+// /login + /register stay indexable — the ecommerce-store template lists
+// its auth pages in the sitemap too (re-verified 2026-10-19, R4 plan §3 F2).
+const INDEXABLE = new Set([
+  "/",
+  "/home",
+  "/gallery",
+  "/services",
+  "/about",
+  "/booking",
+  "/login",
+  "/register",
+]);
 
 const STATIC_TITLES: Record<string, string> = {
   "/": SUFFIX,
@@ -82,16 +99,19 @@ export function buildRouteMeta(path: string): RouteMeta {
       : `${staticTitle} | ${SUFFIX}`
     : `Page Not Found | ${SUFFIX}`;
 
-  // The router renders /home as the landing page (case-insensitive matchPath,
-  // Verified). Two reachable URLs rendering one page get ONE canonical — the
-  // alias merges into "/" instead of competing as duplicate content (R3-03).
-  const canonicalPath = normalized === "/home" ? "/" : pathname;
+  // The canonical space has ONE spelling per page (R3-03 alias, R4-01 case
+  // axis): /home merges into "/", and every other known route canonicalizes
+  // to the lowercase form the sitemap generates — matchPath renders /Gallery
+  // and /gallery identically, so a mixed-case self-canonical would compete
+  // as duplicate content. Unknown paths keep their raw pathname: they are
+  // noindex, so the canonical is inert there.
+  const canonicalPath = normalized === "/home" ? "/" : staticTitle ? normalized : pathname;
 
   return {
     title,
     description: SITE_DESCRIPTION,
     canonicalUrl: `${SITE_URL}${canonicalPath}`,
     ogUrl: `${SITE_URL}${canonicalPath}${search}`,
-    robots: staticTitle ? "index, follow" : "noindex, follow",
+    robots: INDEXABLE.has(normalized) ? "index, follow" : "noindex, follow",
   };
 }

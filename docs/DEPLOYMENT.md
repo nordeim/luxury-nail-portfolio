@@ -1,7 +1,7 @@
 # Deployment Guide
 
 Aurelia Nail Artistry ships as a **single-file Vite SPA** (`dist/index.html`,
-~439 KB / ~116.8 KB gzip) with zero server and zero external services — one
+~442 KB / ~117.4 KB gzip) with zero server and zero external services — one
 static artifact plus its asset folder. This guide covers the supported
 production paths and the environment contract.
 
@@ -147,10 +147,21 @@ the demo store's data lives under the versioned `aurelia:v1` namespace. No
 deploy-side migration is needed when either contract moves — the store
 keys are namespaced and the pre-paint script reads the same key.
 
-## 7. Verification checklist
+## 7. Hosted CI (R6-05)
+
+`.github/workflows/ci.yml` runs the full gate chain on every push/PR to
+`main`: npm ci → Playwright chromium install (--with-deps) → `npm run verify`
+(typecheck → lint → unit → build) → `npm run e2e` (both projects against the
+production preview). No secrets are required; the `.env`-contract gate falls
+back to the tracked `.env.example` on the runner. A red CI run uploads the
+Playwright report as an artifact (7-day retention). If the runner matrix
+needs changes (OS libs, caching), adjust the workflow before relying on it
+as a merge gate.
+
+## 8. Verification checklist
 
 ```bash
-npm run verify && npm run e2e    # typecheck + lint + 81 unit + build + 178 E2E runs
+npm run verify && npm run e2e    # typecheck + lint + 89 unit + build + 194 E2E runs
 curl -s https://your-host/robots.txt        # admin disallowed + sitemap pointer
 curl -s https://your-host/sitemap.xml       # 7 static URLs at your origin, each with a W3C <lastmod>
 curl -s https://your-host/manifest.webmanifest # valid PWA manifest incl. the maskable icon entry
@@ -167,7 +178,7 @@ refresh (SPA fallback works), submit a booking request and see the
 "Request Received" confirmation, and check `document.title` changes per
 route (head contract live).
 
-## 8. Common production issues
+## 9. Common production issues
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|

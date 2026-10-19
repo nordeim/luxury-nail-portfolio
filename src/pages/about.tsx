@@ -11,7 +11,7 @@ export function AboutPage() {
       <div className="mx-auto w-full max-w-7xl px-6 py-24 lg:px-10 lg:py-32">
         <header className="mx-auto max-w-3xl text-center">
           <p className="eyebrow text-muted-foreground">{ABOUT.role}</p>
-          <h1 className="mt-4 font-display text-6xl font-normal lg:text-7xl">{ABOUT.founder}</h1>
+          <h1 className="mt-4 font-display text-5xl font-normal lg:text-6xl">{ABOUT.founder}</h1>
           <p className="mt-8 font-display text-2xl leading-snug text-ink-soft sm:text-3xl">
             {ABOUT.manifesto}
           </p>

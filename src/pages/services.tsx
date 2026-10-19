@@ -1,10 +1,14 @@
-import { BOOKING_POLICIES, SERVICES } from "@/data/studio";
+import { ADD_ON_SERVICES, BOOKING_POLICIES, SERVICES } from "@/data/studio";
 import { CtaLink } from "@/components/chrome";
 
 // Services — six curated services (names/descriptions/durations verbatim from
 // the reference, docs/reference-investigation.md §3.3) + the three policy
-// cards + "Ready to Book?" CTA. Durations render; the reference shows no
-// prices (Verified) — none invented.
+// cards + "Ready to Book?" CTA. Remediation R6-01: the live reference
+// re-measured 2026-10-20 renders prices on every core service and an
+// "Add-On Services" (ENHANCEMENTS) band with four priced items — the catalog
+// and this page track it. The booking form deliberately stays price-free and
+// add-on-free (the reference's booking select offers exactly the six core
+// services; unit-pinned in tests/catalog.test.ts).
 
 export function ServicesPage() {
   return (
@@ -28,7 +32,14 @@ export function ServicesPage() {
               <p className="eyebrow text-muted-foreground">{String(index + 1).padStart(2, "0")}</p>
               <div>
                 <h2 className="font-display text-3xl">{service.name}</h2>
-                <p className="eyebrow mt-3 text-muted-foreground">{service.durationMin} min</p>
+                {/* R6-01: reference meta row — duration + price side by side in
+                    the warm gold family; --gold-ink keeps it AA on cream
+                    (5.29:1) where the reference's static gold fails (2.97:1). */}
+                <p className="mt-3 flex items-center gap-3 text-sm font-normal text-gold-ink">
+                  <span>{service.durationMin} min</span>
+                  <span aria-hidden="true">·</span>
+                  <span>{service.price}</span>
+                </p>
               </div>
               <p className="text-base leading-relaxed text-muted-foreground">
                 {service.description}
@@ -36,6 +47,37 @@ export function ServicesPage() {
             </li>
           ))}
         </ul>
+
+        {/* ENHANCEMENTS band — reference anatomy (measured R6-01): dark band,
+            eyebrow + 36px serif heading + faint intro on the left, four
+            hairline-ruled name/price rows on the right. */}
+        <section
+          aria-labelledby="addons-title"
+          className="mt-24 bg-band text-band-foreground"
+        >
+          <div className="grid gap-12 p-10 lg:grid-cols-2 lg:p-16">
+            <div>
+              <p className="eyebrow text-band-accent">Enhancements</p>
+              <h2 id="addons-title" className="mt-4 font-display text-3xl font-normal lg:text-4xl">
+                Add-On Services
+              </h2>
+              <p className="mt-4 max-w-md text-base leading-relaxed text-band-faint">
+                Elevate your experience with our curated selection of enhancement services.
+              </p>
+            </div>
+            <ul>
+              {ADD_ON_SERVICES.map((addOn) => (
+                <li
+                  key={addOn.id}
+                  className="flex items-center justify-between gap-6 border-b border-band-hairline py-4"
+                >
+                  <span className="text-base">{addOn.name}</span>
+                  <span className="text-sm text-band-gold">{addOn.price}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
         <section aria-labelledby="policies-title" className="mt-24">
           <h2 id="policies-title" className="font-display text-4xl font-normal">

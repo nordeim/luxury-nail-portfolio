@@ -16,6 +16,19 @@ export interface Service {
   description: string;
   durationMin: number;
   category: ServiceCategoryId;
+  /** Display price verbatim from the reference (e.g. "$85", "$200+") —
+   *  never parsed into a number, so suffixes survive. Measured 2026-10-20
+   *  (remediation R6-01); R1 had verified a price-free catalog. */
+  price: string;
+}
+
+/** ENHANCEMENTS band item (reference "Add-On Services", measured R6-01).
+ *  Booking deliberately excludes these — the reference's booking select
+ *  offers exactly the six core services (unit-pinned in catalog.test.ts). */
+export interface AddOnService {
+  id: string;
+  name: string;
+  price: string;
 }
 
 export type WorkCategory = "editorial" | "bridal" | "avant-garde" | "classic";

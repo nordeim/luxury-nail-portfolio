@@ -108,6 +108,7 @@ function extractStudio() {
   const flat = source.match(/\{[^{}]*\}/gs) ?? [];
   const services = [];
   const works = [];
+  const addOns = [];
   for (const obj of flat) {
     if (/durationMin:/.test(obj) && /serviceId|category:/.test(obj) && !/featuredOrder:/.test(obj)) {
       services.push({
@@ -116,6 +117,8 @@ function extractStudio() {
         description: str(obj, "description") ?? "",
         durationMin: num(obj, "durationMin") ?? 0,
         category: str(obj, "category") ?? "signature",
+        // R6-01: display price verbatim ("$200+" stays a string).
+        price: str(obj, "price") ?? "",
       });
     } else if (/featuredOrder:/.test(obj) && /image:/.test(obj)) {
       const orderMatch = /featuredOrder:\s*(\d+|null)/.exec(obj);
@@ -125,6 +128,15 @@ function extractStudio() {
         category: str(obj, "category") ?? "classic",
         image: str(obj, "image") ?? "",
         featuredOrder: orderMatch && orderMatch[1] !== "null" ? Number(orderMatch[1]) : null,
+      });
+    } else if (/price:/.test(obj) && /id:/.test(obj) && !/description:/.test(obj) && !/image:/.test(obj)) {
+      // R6-01: ADD_ON_SERVICES entries — flat id/name/price objects (the
+      // booking contract keeps them OUT of the services table's booking
+      // flow; they project their own table for parity with the catalog).
+      addOns.push({
+        id: str(obj, "id"),
+        name: str(obj, "name"),
+        price: str(obj, "price") ?? "",
       });
     }
   }
@@ -162,7 +174,7 @@ function extractStudio() {
     }
   }
 
-  return { services, works, users };
+  return { services, works, users, addOns };
 }
 
 // ── Schema + seed ────────────────────────────────────────────────────────────
@@ -173,7 +185,13 @@ CREATE TABLE IF NOT EXISTS services (
   name TEXT NOT NULL,
   description TEXT NOT NULL,
   duration_min INTEGER NOT NULL,
-  category TEXT NOT NULL
+  category TEXT NOT NULL,
+  price TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS add_on_services (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  price TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS gallery_works (
   id TEXT PRIMARY KEY,
@@ -206,11 +224,22 @@ CREATE TABLE IF NOT EXISTS booking_requests (
 
 function init(db) {
   db.exec(SCHEMA);
+  // R6-01 upgrade path: databases materialized before the price column lack
+  // it — CREATE TABLE IF NOT EXISTS never amends an existing table. The
+  // projection is regenerable, but a pre-R6 local db must upgrade in place
+  // instead of failing seed (regression-pinned in tests/db-scripts.test.ts).
+  const serviceColumns = db.prepare("PRAGMA table_info(services)").all().map((row) => row.name);
+  if (!serviceColumns.includes("price")) {
+    db.exec("ALTER TABLE services ADD COLUMN price TEXT NOT NULL DEFAULT ''");
+  }
 }
 
 function seed(db, studio) {
   const insertService = db.prepare(
-    "INSERT OR REPLACE INTO services (id, name, description, duration_min, category) VALUES (?, ?, ?, ?, ?)",
+    "INSERT OR REPLACE INTO services (id, name, description, duration_min, category, price) VALUES (?, ?, ?, ?, ?, ?)",
+  );
+  const insertAddOn = db.prepare(
+    "INSERT OR REPLACE INTO add_on_services (id, name, price) VALUES (?, ?, ?)",
   );
   const insertWork = db.prepare(
     "INSERT OR REPLACE INTO gallery_works (id, name, category, image, featured_order) VALUES (?, ?, ?, ?, ?)",
@@ -222,7 +251,10 @@ function seed(db, studio) {
   db.exec("BEGIN");
   try {
     for (const s of studio.services) {
-      insertService.run(s.id, s.name, s.description, s.durationMin, s.category);
+      insertService.run(s.id, s.name, s.description, s.durationMin, s.category, s.price);
+    }
+    for (const a of studio.addOns ?? []) {
+      insertAddOn.run(a.id, a.name, a.price);
     }
     for (const w of studio.works) {
       insertWork.run(w.id, w.name, w.category, w.image, w.featuredOrder);
@@ -241,6 +273,7 @@ function seed(db, studio) {
     services: studio.services.length,
     works: studio.works.length,
     users: studio.users.length,
+    addOns: (studio.addOns ?? []).length,
   };
 }
 
@@ -278,14 +311,14 @@ async function main() {
       }
       const counts = seed(db, extractStudio());
       console.log(
-        `db:seed → ${file} — ${counts.services} services, ${counts.works} gallery works, ${counts.users} users`,
+        `db:seed → ${file} — ${counts.services} services, ${counts.addOns} add-ons, ${counts.works} gallery works, ${counts.users} users`,
       );
       return;
     }
     init(db);
     const counts = seed(db, extractStudio());
     console.log(
-      `db:setup → ${file} (${url}) — ${counts.services} services, ${counts.works} gallery works, ${counts.users} users`,
+      `db:setup → ${file} (${url}) — ${counts.services} services, ${counts.addOns} add-ons, ${counts.works} gallery works, ${counts.users} users`,
     );
   } finally {
     db.close();

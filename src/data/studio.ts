@@ -4,7 +4,7 @@
 // (docs/reference-investigation.md §3.3/§3.5, Verified evidence).
 // Imagery is independently generated for this project — no reference assets.
 
-import type { GalleryWork, Service, StudioInfo, TimeSlot, User } from "@/types";
+import type { AddOnService, GalleryWork, Service, StudioInfo, TimeSlot, User } from "@/types";
 
 export const STUDIO: StudioInfo = {
   name: "Aurelia",
@@ -58,6 +58,7 @@ export const SERVICES: Service[] = [
       "Our foundational experience featuring meticulous nail shaping, cuticle care, and a flawless polish application.",
     durationMin: 60,
     category: "signature",
+    price: "$85",
   },
   {
     id: "luxury-gel-extension",
@@ -66,6 +67,7 @@ export const SERVICES: Service[] = [
       "Expertly sculpted extensions using premium gel systems, customized to your desired length and shape.",
     durationMin: 90,
     category: "extensions",
+    price: "$150",
   },
   {
     id: "bespoke-nail-art",
@@ -74,6 +76,7 @@ export const SERVICES: Service[] = [
       "Intricate hand-painted designs, 3D embellishments, and custom artwork tailored to your vision.",
     durationMin: 120,
     category: "bespoke",
+    price: "$200+",
   },
   {
     id: "bridal-collection",
@@ -82,6 +85,7 @@ export const SERVICES: Service[] = [
       "A comprehensive bridal package including consultation, trial design, and wedding-day service.",
     durationMin: 180,
     category: "bridal",
+    price: "$350",
   },
   {
     id: "chrome-specialty",
@@ -89,6 +93,7 @@ export const SERVICES: Service[] = [
     description: "Statement-making chrome, holographic, and specialty finish applications.",
     durationMin: 75,
     category: "specialty",
+    price: "$120",
   },
   {
     id: "maintenance-refill",
@@ -96,7 +101,18 @@ export const SERVICES: Service[] = [
     description: "Keep your extensions looking pristine with our professional maintenance service.",
     durationMin: 60,
     category: "maintenance",
+    price: "$75",
   },
+];
+
+// ENHANCEMENTS band — measured verbatim from the reference 2026-10-20
+// (remediation R6-01). The booking form deliberately excludes these: the
+// reference's booking select offers exactly the six core services.
+export const ADD_ON_SERVICES: AddOnService[] = [
+  { id: "hand-massage", name: "Hand Massage", price: "$20" },
+  { id: "paraffin-treatment", name: "Paraffin Treatment", price: "$25" },
+  { id: "nail-repair", name: "Nail Repair (per nail)", price: "$15" },
+  { id: "design-consultation", name: "Design Consultation", price: "Complimentary" },
 ];
 
 export const BOOKING_POLICIES = [

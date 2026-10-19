@@ -34,7 +34,7 @@ export function HomePage() {
         style={{ background: "linear-gradient(to bottom, rgba(10,9,8,0.55) 0%, rgba(10,9,8,0.35) 40%, rgba(10,9,8,0.65) 100%)" }}
       />
       <div className="relative z-10 flex flex-col items-center px-6 text-center text-hero-ink">
-        <p className="eyebrow animate-fade-in text-hero-ink/90">{HERO.eyebrow}</p>
+        <p className="eyebrow animate-fade-in text-hero-ink/80">{HERO.eyebrow}</p>
         <h1 className="animate-fade-up mt-6 font-display text-7xl leading-[0.95] font-normal sm:text-8xl lg:text-[8rem]">
           {HERO.title}
         </h1>
@@ -120,11 +120,19 @@ export function HomePage() {
 
       <section aria-labelledby="philosophy-title" className="bg-band text-band-foreground">
         <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-6 py-24 text-center lg:py-28">
-          <p className="eyebrow text-band-muted">{PHILOSOPHY.eyebrow}</p>
-          <h2 id="philosophy-title" className="mt-8 font-display text-3xl leading-snug font-normal sm:text-4xl">
-            “{PHILOSOPHY.quote}”
+          <p className="eyebrow text-band-accent">{PHILOSOPHY.eyebrow}</p>
+          <h2 id="philosophy-title" className="mt-8 font-display text-3xl leading-snug font-normal sm:text-5xl">
+            “{PHILOSOPHY.quote.split(/(refined elegance)/).map((part, index) =>
+              part === "refined elegance" ? (
+                // R6-03: the reference carries a rose accent span on this
+                // phrase (measured 48px #D4A5A5 on the band — 8.02:1).
+                <span key={index} className="text-band-accent">{part}</span>
+              ) : (
+                <span key={index}>{part}</span>
+              ),
+            )}”
           </h2>
-          <p className="eyebrow mt-8 text-band-muted">{PHILOSOPHY.attribution}</p>
+          <p className="eyebrow mt-8 text-band-faint">{PHILOSOPHY.attribution}</p>
         </div>
       </section>
 

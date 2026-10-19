@@ -22,6 +22,18 @@ import type { ThemeMode } from "@/types";
 //   - links stacked with gap-* — never space-y with mt-* children (v4 trap 4),
 //   - focus trapped, Escape closes, background scroll locked,
 //   - link click navigates and dismisses (verified on the reference).
+// Active-route contract (R6-04): aria-current="page" + --gold-ink. The
+// reference paints the active nav item in its static gold (2.97:1 on cream —
+// an AA fail it ships); the clone echoes the intent with the AA-passing
+// --gold-ink (5.29:1 light / 8.18:1 dark) and programmatic semantics.
+
+/** Active when the link's pathname equals the current one (case-insensitive,
+ *  matching the router's case-insensitive matchPath). Hash anchors strip:
+ *  Portfolio (/#portfolio) anchors home, so it is active on "/". */
+function isActiveNavItem(href: string, path: string): boolean {
+  const normalize = (value: string) => value.split("#")[0]!.replace(/\/+$/, "") || "/";
+  return normalize(href).toLowerCase() === normalize(path).toLowerCase();
+}
 
 export function BrandMark({ hero }: { hero?: boolean }) {
   return (
@@ -112,21 +124,31 @@ export function Header() {
         <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-6 lg:px-10">
           <BrandMark hero={overlay} />
           <nav className="hidden items-center gap-9 md:flex" aria-label="Primary">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="eyebrow opacity-90 transition-opacity hover:text-gold hover:opacity-100"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {NAV_LINKS.map((link) => {
+              // R6-02: reference nav geometry — 14px Inter 400, 0.1em tracking,
+              // uppercase (measured; the shared eyebrow utility runs 0.3em).
+              const active = isActiveNavItem(link.href, path);
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "text-sm uppercase tracking-[0.1em] font-normal opacity-90 transition-[color,opacity]",
+                    "hover:text-gold hover:opacity-100",
+                    active && "text-gold-ink opacity-100",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             {user ? (
-              <Link href="/account" className="eyebrow opacity-90 hover:opacity-100">
+              <Link href="/account" className="text-sm uppercase tracking-[0.1em] font-normal opacity-90 hover:opacity-100">
                 Account
               </Link>
             ) : (
-              <Link href="/login" className="eyebrow opacity-90 hover:opacity-100">
+              <Link href="/login" className="text-sm uppercase tracking-[0.1em] font-normal opacity-90 hover:opacity-100">
                 Sign In
               </Link>
             )}
@@ -153,6 +175,7 @@ export function Header() {
 }
 
 function MobileMenu({ id, open, onClose }: { id: string; open: boolean; onClose: () => void }) {
+  const { path } = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<Element | null>(null);
 
@@ -219,16 +242,25 @@ function MobileMenu({ id, open, onClose }: { id: string; open: boolean; onClose:
         </button>
       </div>
       <nav aria-label="Mobile" className="flex flex-1 flex-col justify-center gap-8 px-8 pb-24">
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.label}
-            href={link.href}
-            onClick={onClose}
-            className="font-display text-4xl text-foreground transition-colors hover:text-gold"
-          >
-            {link.label}
-          </Link>
-        ))}
+        {NAV_LINKS.map((link) => {
+          const active = isActiveNavItem(link.href, path);
+          return (
+            <Link
+              key={link.label}
+              href={link.href}
+              onClick={onClose}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                // R6-02: 30px Cormorant — the reference's measured overlay
+                // link size (the R1-era text-4xl was never measured).
+                "font-display text-3xl text-foreground transition-colors hover:text-gold",
+                active && "text-gold-ink",
+              )}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
         <div className="mt-4 flex flex-col gap-8">
           <AccountMenuLink onClose={onClose} />
         </div>
@@ -244,7 +276,7 @@ function AccountMenuLink({ onClose }: { onClose: () => void }) {
     <Link
       href={user ? "/account" : "/login"}
       onClick={onClose}
-      className="font-display text-4xl text-foreground transition-colors hover:text-gold"
+      className="font-display text-3xl text-foreground transition-colors hover:text-gold"
     >
       {user ? "Account" : "Sign In"}
     </Link>

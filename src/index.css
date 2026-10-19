@@ -46,11 +46,26 @@
   --hairline: hsl(30 10% 87%);
   --ink-soft: hsl(30 6% 32%);
   --gold: hsl(36 41% 62%);
+  /* AA-corrected gold reserved for TEXT states on the page ground (R6-04):
+     the reference paints active nav items in its static gold (2.97:1 on
+     cream — an AA fail it ships); this darker warm gold passes 5.29:1 on
+     cream. --gold stays hover/border only. */
+  --gold-ink: hsl(34 15% 38%);
   /* Dark bands (footer, philosophy, dark CTAs) — measured rgb(26,26,26). */
   --band: #1a1a1a;
   --band-foreground: hsl(0 0% 100%);
   --band-muted: rgba(255, 255, 255, 0.8); /* measured footer body text */
   --band-hairline: hsl(0 0% 100% / 0.2);
+  /* Band accent family (R6-03, measured on the reference philosophy band):
+     rose eyebrow + quote accent — 8.02:1 on the dark band; the dark-mode
+     value sits on the flipped cream band at 4.81:1. */
+  --band-accent: #d4a5a5;
+  /* Faint band text (attribution, add-on intro) — 6.86:1 on the dark band. */
+  --band-faint: hsl(0 0% 100% / 0.6);
+  /* Warm price/meta accent on the BAND ground (add-on rows): --gold on the
+     dark band (7.52:1); inverts to the AA gold ink on the flipped cream
+     band (5.29:1). */
+  --band-gold: hsl(36 41% 62%);
   /* Hero sits on photography in BOTH themes — static, never flips. */
   --hero-ink: hsl(0 0% 100%);
   --hero-ink-soft: hsl(0 0% 100% / 0.8);
@@ -68,12 +83,20 @@
   --hairline: hsl(40 33% 95% / 0.14);
   --ink-soft: hsl(40 20% 82%);
   --gold: hsl(38 44% 66%);
+  /* Light gold passes 8.18:1 on the near-black dark ground. */
+  --gold-ink: hsl(38 44% 66%);
   /* Editorial inversion: cream bands on near-black ground (hex pins, same
      rounding doctrine as the light block). */
   --band: #f5f3ef;
   --band-foreground: #13110f;
   --band-muted: rgba(19, 17, 15, 0.7);
   --band-hairline: rgba(19, 17, 15, 0.2);
+  /* Accents flip with the band: rose darkens for the cream band (4.81:1),
+     faint ink at 0.62 lands 5.11:1, and the band-gold pair inverts to the
+     AA gold ink (5.29:1 on cream). */
+  --band-accent: #985a5a;
+  --band-faint: rgba(19, 17, 15, 0.62);
+  --band-gold: hsl(34 15% 38%);
 }
 
 @theme inline {
@@ -89,10 +112,14 @@
   --color-hairline: var(--hairline);
   --color-ink-soft: var(--ink-soft);
   --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
   --color-band: var(--band);
   --color-band-foreground: var(--band-foreground);
   --color-band-muted: var(--band-muted);
   --color-band-hairline: var(--band-hairline);
+  --color-band-accent: var(--band-accent);
+  --color-band-faint: var(--band-faint);
+  --color-band-gold: var(--band-gold);
   --color-hero-ink: var(--hero-ink);
   --color-hero-ink-soft: var(--hero-ink-soft);
   --color-hero-pill: var(--hero-pill);
@@ -136,11 +163,14 @@
 }
 
 @utility eyebrow {
+  /* Measured reference geometry (R6-02 census): 14px / 0.3em / 400. The
+     R1-era 11px/0.32em/500 was declared "exact px not measured (Reasoned)"
+     and drifted from every reference eyebrow until this retune. */
   font-family: var(--font-sans);
-  font-size: 0.6875rem;
-  letter-spacing: 0.32em;
+  font-size: 0.875rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 html {

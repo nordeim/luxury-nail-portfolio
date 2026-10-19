@@ -14,6 +14,7 @@
 - `[SR-R3]` review round R3 (2026-10-19): sitemap/SEO audit vs the ecommerce-store template + the live reference (`docs/remediation-plan-aurelia-r3.md`). SEO-head contract extended: sitemap `<lastmod>` (git-derived, deterministic per content state), soft-404 `noindex, follow` via a `RouteMeta.robots` field upserted by HeadManager, `/home` alias canonicalizes to `/`, complete social-card meta (og:image width/height/alt, twitter:image:alt, og:locale), `apple-touch-icon` + manifest maskable entry, NailSalon JSON-LD `sameAs` + `openingHoursSpecification`. Totals now 79/79 unit, 172/172 e2e, build ~438 KB.
 - `[SR-R4]` review round R4 (2026-10-19): R3 validation + audit (`docs/remediation-plan-aurelia-r4.md`). Canonical space consolidated — case variants (`/Gallery`, `/Home`) canonicalize to the sitemap's lowercase form (R4-01); robots tightened to an indexable allowlist (the sitemap's public routes + `/home`) so private surfaces (`/account`, `/admin/*`, `/reset`) ship `noindex, follow` (R4-02); `theme-color` follows the resolved theme — synced by the pre-paint head script (meta moved above it) and `applyTheme` (R4-03). Totals now 81/81 unit, 178/178 e2e, build ~439 KB.
 - `[SR-R5]` review round R5 (2026-10-19): R4 validation — every R4 fix re-verified live on the served artifact (canonical case, private noindex, theme-color both seams, soft-404), all parity pins hold (six-route reference ground matrix; mobile-menu traps incl. the theme-follow contract now evidenced dark→light), template sitemap/robots posture unchanged, 0 dependency vulnerabilities (`docs/remediation-plan-aurelia-r5.md`). One docs-only finding: the reference's auth pages render on Base44 platform chrome (white + system fonts) — recorded as a formal deviation (implementation-plan §2 R5-01); the clone keeps the studio design system on auth. Totals unchanged (81/178, ~439 KB).
+- `[SR-R6]` review round R6 (2026-10-20): reference-drift catch-up + measured typography normalization (`docs/remediation-plan-aurelia-r6.md`). The live reference now prices its six services and ships an "Add-On Services" (ENHANCEMENTS) band — the catalog grew to match (`Service.price`, `ADD_ON_SERVICES`, services-page band, `add_on_services` table + PRAGMA-guarded in-place upgrade); the R1-declared-unmeasured eyebrow geometry was measured and normalized (14px/0.3em/400 utility; nav 0.1em; menu 30px; quote 48px + rose accent span; About h1 48/60); the active-route state ships as `aria-current="page"` + the AA-passing `--gold-ink` (the reference's gold active text fails AA at 2.97:1 — intent matched, math corrected); band anatomy tokenized (`--band-accent`/`--band-faint`/`--band-gold`); hosted CI closes the standing watch item (`.github/workflows/ci.yml`). Totals now 89/89 unit, 194/194 e2e, build ~442 KB.
 - `[CA]` ADR-002 extended with the containment-audit amendment (session 3 remediation): the DB can no longer silently materialize outside the repo root.
 - `[SYN]` Design-token doctrine locked to **measured sRGB hex pins** after two 1-unit hsl→rgb drift defects (light `#f5f3ef`, dark `#13110f`) were caught by the computed-style parity gate.
 
@@ -57,7 +58,7 @@ The reference observation was performed under the replicate-web-app methodology 
 | UI runtime | React | 19.3.1 | Function components + hooks only; no class components, no `forwardRef` |
 | Language | TypeScript (strict) | 5.9.3 | `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`, `verbatimModuleSyntax` |
 | Build | Vite | 7.3.7 | Fast dev server; the SPA ships as a **single HTML file** (ADR-003) |
-| Single-file plugin | vite-plugin-singlefile | 2.3.4 | Inlines JS+CSS into `dist/index.html` (~439 KB / ~116.8 KB gzip) |
+| Single-file plugin | vite-plugin-singlefile | 2.3.4 | Inlines JS+CSS into `dist/index.html` (~442 KB / ~117.4 KB gzip) |
 | Styling | Tailwind CSS (CSS-first) | 4.3.3 | v4 `@theme inline` + `@custom-variant`; **no `tailwind.config.js`** (ADR-004) |
 | Routing | Custom history router | — (~107 LOC) | Zero-dep `pushState` router with case-insensitive route matching (ADR-006) |
 | State | React Context + localStorage | — | `aurelia:v1` namespaced store: session, bookings, theme, toasts (ADR-001) |
@@ -90,7 +91,7 @@ Versions are read from `package.json` (lockfile-pinned via `package-lock.json`).
 **ADR-003: Single-file production build (`vite-plugin-singlefile`)**
 
 - **Context:** The deliverable must deploy to any static host (including sandboxed preview hosts) with zero asset pipeline at the edge, and the e2e suite must test **exactly what ships**.
-- **Decision:** `vite build` inlines all JS and CSS into one `dist/index.html` (~439 KB, ~116.8 KB gzip at the R4 dependency set, no external chunk requests). The e2e suite runs against `vite preview` of that artifact, never against the dev server.
+- **Decision:** `vite build` inlines all JS and CSS into one `dist/index.html` (~442 KB, ~117.4 KB gzip at the R6 feature set, no external chunk requests). The e2e suite runs against `vite preview` of that artifact, never against the dev server.
 - **Rationale:** Removes the last class of "works in dev, differs in prod" drift for a no-backend app; makes deployment a single-file copy.
 - **Consequences:** (+) Trivial deploys; e2e fidelity. (−) No HTTP-level code splitting (irrelevant at this size); every change requires a rebuild before e2e.
 - **Alternatives rejected:** Standard multi-chunk build (deploy complexity without benefit here); SSR frameworks (violates ADR-001).
@@ -442,7 +443,7 @@ No numeric thresholds configured. The de-facto rule: **every Layer-2 seam and ev
 npm run build    # prebuild: node scripts/generate-sitemap.mjs → vite build
 ```
 
-Output: **`dist/index.html`** (~439 KB, ~116.8 KB gzip at the R4 dependency set) — one file, no chunks, no service worker. Serve it from any static host; SPA fallback is unnecessary (single document). `public/*` (images, manifest, icons, sitemap, robots) deploys alongside.
+Output: **`dist/index.html`** (~442 KB, ~117.4 KB gzip at the R6 feature set) — one file, no chunks, no service worker. Serve it from any static host; SPA fallback is unnecessary (single document). `public/*` (images, manifest, icons, sitemap, robots) deploys alongside.
 
 ### 8.2 Environment Variables
 
@@ -500,10 +501,10 @@ TypeScript strict + `erasableSyntaxOnly` (no enums/namespaces/parameter properti
 |---|---|---|---|
 | LOW | `skills/` and `docs/session_*.md` carry the prior project's (HomeNest) session history | Context noise for agents exploring the repo | Kept deliberately (operator-uploaded history); new docs supersede |
 | LOW | Google Fonts is a runtime cross-origin dependency | First-paint font swap on cold cache; offline demos show fallbacks | Accepted (`display=swap` + metric fallbacks); self-hosting is the future fix |
-| LOW | No hosted CI | Gates run locally only | Accepted for this repo; §7.4 is the contract |
+| LOW | No hosted CI | Gates run locally only | **Closed in R6** — `.github/workflows/ci.yml` runs verify + full e2e on push/PR to `main` |
 | INFO | Dark mode is a designed superset (reference ships none) | None — documented deviation, e2e-pinned | Closed |
 
-No CRITICAL/HIGH issues are open: the gate chain (typecheck, lint, 81/81 unit, 178/178 e2e) is green at the time of writing.
+No CRITICAL/HIGH issues are open: the gate chain (typecheck, lint, 89/89 unit, 194/194 e2e) is green at the time of writing.
 
 ---
 

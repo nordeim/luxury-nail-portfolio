@@ -44,7 +44,15 @@ describe("scripts/db-setup.mjs — the DATABASE_URL tooling contract", () => {
       .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
       .all()
       .map((row) => row.name as string);
-    expect(tables).toEqual(["booking_requests", "gallery_works", "services", "users"]);
+    // R6-01: add_on_services joins the projection (catalog tracks the live
+    // reference's ENHANCEMENTS band).
+    expect(tables).toEqual([
+      "add_on_services",
+      "booking_requests",
+      "gallery_works",
+      "services",
+      "users",
+    ]);
     db.close();
   });
 
@@ -64,6 +72,26 @@ describe("scripts/db-setup.mjs — the DATABASE_URL tooling contract", () => {
       .get("bridal-collection") as { name: string; duration_min: number } | undefined;
     expect(bridal?.name).toBe("Bridal Collection");
     expect(bridal?.duration_min).toBe(180);
+    db.close();
+  });
+
+  it("projects the measured prices and the add-on catalog (R6-01)", () => {
+    const db = new DatabaseSync(dbFile);
+    const bespoke = db
+      .prepare("SELECT price FROM services WHERE id = ?")
+      .get("bespoke-nail-art") as { price: string } | undefined;
+    expect(bespoke?.price).toBe("$200+");
+    const addOns = db.prepare("SELECT id, name, price FROM add_on_services ORDER BY id").all() as Array<{
+      id: string;
+      name: string;
+      price: string;
+    }>;
+    expect(addOns).toEqual([
+      { id: "design-consultation", name: "Design Consultation", price: "Complimentary" },
+      { id: "hand-massage", name: "Hand Massage", price: "$20" },
+      { id: "nail-repair", name: "Nail Repair (per nail)", price: "$15" },
+      { id: "paraffin-treatment", name: "Paraffin Treatment", price: "$25" },
+    ]);
     db.close();
   });
 
@@ -96,6 +124,62 @@ describe("scripts/db-setup.mjs — the DATABASE_URL tooling contract", () => {
     const db = new DatabaseSync(dbFile);
     const serviceCount = db.prepare("SELECT COUNT(*) AS n FROM services").get()?.n as number;
     expect(serviceCount).toBe(SERVICES.length);
+    db.close();
+  });
+
+  it("upgrades a pre-R6 database in place (price column backfill path)", () => {
+    // Regression pin for the R6-01 schema evolution: a db materialized by
+    // the pre-R6 script has services WITHOUT price and no add_on_services
+    // table — db:setup must ALTER + create + seed, not fail seed.
+    rmSync(dbFile, { force: true });
+    const legacy = new DatabaseSync(dbFile);
+    legacy.exec(`
+      CREATE TABLE services (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        duration_min INTEGER NOT NULL,
+        category TEXT NOT NULL
+      );
+      CREATE TABLE gallery_works (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        image TEXT NOT NULL,
+        featured_order INTEGER
+      );
+      CREATE TABLE users (
+        id TEXT PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        role TEXT NOT NULL,
+        password_hash TEXT NOT NULL
+      );
+      CREATE TABLE booking_requests (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        service_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        time_slot TEXT NOT NULL,
+        notes TEXT NOT NULL,
+        user_id TEXT,
+        status TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+    `);
+    legacy.close();
+    runSetup();
+    const db = new DatabaseSync(dbFile);
+    const columns = db.prepare("PRAGMA table_info(services)").all().map((row) => row.name as string);
+    expect(columns).toContain("price");
+    const bespoke = db
+      .prepare("SELECT price FROM services WHERE id = ?")
+      .get("bespoke-nail-art") as { price: string } | undefined;
+    expect(bespoke?.price).toBe("$200+");
+    const addOns = db.prepare("SELECT COUNT(*) AS n FROM add_on_services").get()?.n as number;
+    expect(addOns).toBe(4);
     db.close();
   });
 });

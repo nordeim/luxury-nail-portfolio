@@ -12,7 +12,7 @@ version: 1.0.0
 last_updated: 2026-10-20
 project_state: >-
   COMPLETE AND GREEN — typecheck ✓ lint ✓ 95/95 unit ✓ 214/214 e2e ✓
-  production build (446 KB single file) ✓ review rounds R1-R10 executed (theme
+  production build (446 KB single file) ✓ review rounds R1-R12 executed (theme
   switching remediated: two-state toggle + pre-paint script; axe 4.14 Label-in-Name
   fixed; sitemap lastmod + SEO hardening: soft-404 noindex, /home alias canonical,
   social-card meta, icon surfaces, JSON-LD enrichment; R4: case-variant lowercase
@@ -36,8 +36,13 @@ project_state: >-
   (third consecutive zero-findings round) — all R2–R10 pins re-verified live
   via a scripted 31/31-check battery, reference re-extracted with no drift,
   CI on the R10 head GREEN per the R10 session record, F1 probe-method
-  record: census multi-select surfaces per select) ✓ capture sweeps
-  through R11 (50 verified PNGs) ✓ pushed to origin/main.
+  record: census multi-select surfaces per select; R12: full validation round
+  (fourth consecutive zero-findings round) — all R2–R11 pins re-verified live
+  via a scripted 31/31-check battery, reference re-extracted with no drift
+  (13/13 incl. the per-select booking contract), CI on the R11 head GREEN
+  (run #11, verified live), F1 probe-method completion record: per-select
+  census implemented in the probe) ✓ capture sweeps
+  through R12 (53 verified PNGs) ✓ pushed to origin/main.
 ---
 
 # Aurelia Nail Artistry — Codebase Engineering SKILL

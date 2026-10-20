@@ -21,7 +21,9 @@ export const STUDIO: StudioInfo = {
 export const HERO = {
   eyebrow: "Luxury Nail Artistry",
   title: "Aurelia",
-  tagline: "Where artistry meets elegance. Bespoke nail design for the modern icon.",
+  // R7-01: the reference drifted off the R1-Verified "…for the modern
+  // icon." line — re-measured 2026-10-20, verbatim.
+  tagline: "Where artistry meets elegance. Bespoke nail designs for the extraordinary.",
   cta: "Book Your Session",
   image: "/images/hero.jpg",
 } as const;
@@ -29,15 +31,21 @@ export const HERO = {
 export const PHILOSOPHY = {
   eyebrow: "The Philosophy",
   quote: "Every nail is a canvas. Every design, a statement of refined elegance.",
-  attribution: "Aurelia Chen — Founder & Artist",
+  // R7-06: the reference renders the attribution as an em-dash PREFIX with a
+  // comma separator ("— AURELIA CHEN, FOUNDER & ARTIST", 14px white/50) and
+  // fixed its own Voss/Chen inconsistency to Chen (the R1 ledger row's
+  // unification now matches upstream).
+  attribution: "— Aurelia Chen, Founder & Artist",
 } as const;
 
 export const EXPERIENCE = {
   eyebrow: "The Experience",
   title: "Bespoke Artistry",
+  // R7-05: re-measured verbatim 2026-10-20 (R1 recorded the section as
+  // "two paragraphs" without text; the build-time copy was paraphrase).
   paragraphs: [
-    "Each session at Aurelia is a curated experience. From the initial consultation to the final reveal, every detail is thoughtfully curated to bring your vision to life.",
-    "Our signature services blend foundational techniques with contemporary artistry, creating a masterpiece that is as unique as you are.",
+    "Each session at Aurelia is a curated experience. From the initial consultation to the final design, every detail is thoughtfully considered to bring your vision to life.",
+    "Our signature services blend traditional techniques with contemporary artistry, creating designs that are as unique as you are.",
   ],
   cta: "Explore Services",
   image: "/images/experience.jpg",
@@ -141,19 +149,23 @@ export const TIME_SLOTS: TimeSlot[] = [
   { label: "4:00 PM", minutes: 960 },
 ];
 
+// R7-03: the reference assigns categories in a measured FIVE-cycle
+// (Editorial, Bridal, Avant-Garde, Classic, Seasonal repeating) — read
+// per-work from the live DOM 2026-10-20. R1's "Reasoned" four-cycle
+// inference missed Seasonal and miscategorized eight works.
 export const GALLERY_WORKS: GalleryWork[] = [
   { id: "pearl-essence", name: "Pearl Essence", category: "editorial", image: "/images/pearl-essence.jpg", featuredOrder: 1 },
   { id: "midnight-garden", name: "Midnight Garden", category: "bridal", image: "/images/midnight-garden.jpg", featuredOrder: 2 },
   { id: "chrome-dreams", name: "Chrome Dreams", category: "avant-garde", image: "/images/chrome-dreams.jpg", featuredOrder: 3 },
   { id: "blush-hour", name: "Blush Hour", category: "classic", image: "/images/blush-hour.jpg", featuredOrder: 4 },
-  { id: "winter-frost", name: "Winter Frost", category: "editorial", image: "/images/winter-frost.jpg", featuredOrder: null },
-  { id: "golden-hour", name: "Golden Hour", category: "bridal", image: "/images/golden-hour.jpg", featuredOrder: null },
-  { id: "ivory-dreams", name: "Ivory Dreams", category: "avant-garde", image: "/images/ivory-dreams.jpg", featuredOrder: null },
-  { id: "obsidian", name: "Obsidian", category: "classic", image: "/images/obsidian.jpg", featuredOrder: null },
-  { id: "french-moderne", name: "French Moderne", category: "editorial", image: "/images/french-moderne.jpg", featuredOrder: null },
-  { id: "autumn-ember", name: "Autumn Ember", category: "bridal", image: "/images/autumn-ember.jpg", featuredOrder: null },
-  { id: "velvet-night", name: "Velvet Night", category: "avant-garde", image: "/images/velvet-night.jpg", featuredOrder: null },
-  { id: "rose-petal", name: "Rose Petal", category: "classic", image: "/images/rose-petal.jpg", featuredOrder: null },
+  { id: "winter-frost", name: "Winter Frost", category: "seasonal", image: "/images/winter-frost.jpg", featuredOrder: null },
+  { id: "golden-hour", name: "Golden Hour", category: "editorial", image: "/images/golden-hour.jpg", featuredOrder: null },
+  { id: "ivory-dreams", name: "Ivory Dreams", category: "bridal", image: "/images/ivory-dreams.jpg", featuredOrder: null },
+  { id: "obsidian", name: "Obsidian", category: "avant-garde", image: "/images/obsidian.jpg", featuredOrder: null },
+  { id: "french-moderne", name: "French Moderne", category: "classic", image: "/images/french-moderne.jpg", featuredOrder: null },
+  { id: "autumn-ember", name: "Autumn Ember", category: "seasonal", image: "/images/autumn-ember.jpg", featuredOrder: null },
+  { id: "velvet-night", name: "Velvet Night", category: "editorial", image: "/images/velvet-night.jpg", featuredOrder: null },
+  { id: "rose-petal", name: "Rose Petal", category: "bridal", image: "/images/rose-petal.jpg", featuredOrder: null },
 ];
 
 export const CATEGORY_LABELS: Record<GalleryWork["category"], string> = {
@@ -161,30 +173,57 @@ export const CATEGORY_LABELS: Record<GalleryWork["category"], string> = {
   bridal: "Bridal",
   "avant-garde": "Avant-Garde",
   classic: "Classic",
+  seasonal: "Seasonal",
 };
 
 export const STUDIO_IMAGE = "/images/studio.jpg";
 
+// R7-04: the About page content re-measured 2026-10-20 — the reference
+// renders an "The Artist" bio section (two paragraphs + an in-column quote),
+// a 3-col stats row, a dark THE PHILOSOPHY band (same anatomy as the home
+// band, rose accent on "wearable art"), "What Guides Us" values with the
+// measured bodies, a rewritten studio paragraph, an AS FEATURED IN strip and
+// a "Book a Consultation" CTA. All strings verbatim from the live extraction
+// (docs/remediation-plan-aurelia-r7.md §5).
 export const ABOUT = {
   founder: "Aurelia Chen",
-  role: "Founder & Artist",
+  eyebrow: "The Artist",
+  bio: [
+    "With over a decade of experience in luxury nail artistry, Aurelia has cultivated a distinctive style that blends traditional elegance with contemporary edge.",
+    "Trained in both Paris and Tokyo, her work has graced the pages of Vogue, Elle, and Harper's Bazaar. She has been the go-to nail artist for Fashion Week runways and celebrity red carpet moments.",
+  ],
+  quote:
+    "I believe nails are the ultimate accessory. They're personal, intimate, and infinitely expressive. My goal is to create designs that feel like an extension of your identity.",
+  portrait: "/images/aurelia-portrait.jpg",
+  stats: [
+    { value: "12+", label: "Years Experience" },
+    { value: "5K+", label: "Happy Clients" },
+    { value: "50+", label: "Editorial Features" },
+  ],
   manifesto: "We don't just create nails. We craft wearable art.",
+  manifestoAccent: "wearable art",
+  philosophyParagraph:
+    "Every appointment at Aurelia begins with understanding—your style, your story, your vision. We believe that the best designs emerge from genuine connection and creative collaboration.",
   values: [
     {
       title: "Precision",
-      body: "Every line, every edge, every surface is executed with exacting care. Precision is the discipline beneath the artistry.",
+      body: "Every stroke, every detail is executed with unwavering precision and care.",
     },
     {
       title: "Passion",
-      body: "This is not a service industry to us — it is a craft. Each set is an opportunity to create something worth wearing.",
+      body: "Our love for nail artistry drives us to continuously evolve and innovate.",
     },
     {
       title: "Excellence",
-      body: "From premium systems to a calm, considered studio, every detail of the experience is held to the highest standard.",
+      body: "We hold ourselves to the highest standards in every service we provide.",
     },
   ],
   studioBody:
-    "Tucked away on Melrose Place, the Aurelia studio was designed as a calm counterpoint to the city — a private atelier where consultations unfold unhurried and every appointment is a one-at-a-time engagement.",
+    "Located in the heart of Los Angeles, our intimate studio space was designed to feel like a sanctuary. From the moment you step in, you're enveloped in calm, sophistication, and creative energy.",
+  featuredIn: ["Vogue", "Elle", "Harper's Bazaar", "Allure", "Glamour"],
+  ctaTitle: "Let's Create Together",
+  ctaSupport: "Ready to bring your nail vision to life? I'd love to hear from you.",
+  cta: "Book a Consultation",
 } as const;
 
 /** Primary nav — labels render uppercase via tracking utilities (reference idiom). */

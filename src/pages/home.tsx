@@ -122,7 +122,10 @@ export function HomePage() {
         <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-6 py-24 text-center lg:py-28">
           <p className="eyebrow text-band-accent">{PHILOSOPHY.eyebrow}</p>
           <h2 id="philosophy-title" className="mt-8 font-display text-3xl leading-snug font-normal sm:text-5xl">
-            “{PHILOSOPHY.quote.split(/(refined elegance)/).map((part, index) =>
+            {/* R7-06: the reference's blockquote carries straight-quote
+                glyphs as literal text — visible at 48px; curly quotes
+                replaced to match. */}
+            "{PHILOSOPHY.quote.split(/(refined elegance)/).map((part, index) =>
               part === "refined elegance" ? (
                 // R6-03: the reference carries a rose accent span on this
                 // phrase (measured 48px #D4A5A5 on the band — 8.02:1).
@@ -130,7 +133,7 @@ export function HomePage() {
               ) : (
                 <span key={index}>{part}</span>
               ),
-            )}”
+            )}"
           </h2>
           <p className="eyebrow mt-8 text-band-faint">{PHILOSOPHY.attribution}</p>
         </div>

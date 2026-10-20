@@ -31,7 +31,10 @@ export interface AddOnService {
   price: string;
 }
 
-export type WorkCategory = "editorial" | "bridal" | "avant-garde" | "classic";
+/** Gallery categories — the reference's measured five-cycle (R7-03):
+ *  Editorial, Bridal, Avant-Garde, Classic, Seasonal repeating across the
+ *  12 works. R1's four-cycle inference missed Seasonal. */
+export type WorkCategory = "editorial" | "bridal" | "avant-garde" | "classic" | "seasonal";
 
 export interface GalleryWork {
   id: string;

@@ -1,6 +1,6 @@
 # Aurelia Nail Artistry — Luxury Nail Portfolio
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![React](https://img.shields.io/badge/React-19.3-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6) ![Tailwind](https://img.shields.io/badge/TailwindCSS-4.3-38bdf8) ![Vite](https://img.shields.io/badge/Vite-7.3-646cff) ![Tests](https://img.shields.io/badge/tests-89%20unit%20%2B%20194%20e2e-brightgreen) ![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088ff)
+![Version](https://img.shields.io/badge/version-1.0.0-blue) ![React](https://img.shields.io/badge/React-19.3-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6) ![Tailwind](https://img.shields.io/badge/TailwindCSS-4.3-38bdf8) ![Vite](https://img.shields.io/badge/Vite-7.3-646cff) ![Tests](https://img.shields.io/badge/tests-95%20unit%20%2B%20212%20e2e-brightgreen) ![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088ff)
 
 A production-grade marketing + booking SPA for a luxury nail studio — a visual and functional superset of `aurelia-nail-artistry-demo.base44.app`, built as a single-file React application with a verified-parity editorial design, a public appointment-request workflow, hashed-credential accounts, an admin booking surface, and a dark-mode theme system the reference doesn't ship.
 
@@ -17,12 +17,13 @@ A production-grade marketing + booking SPA for a luxury nail studio — a visual
 | **Accounts (superset)** | Salted WebCrypto SHA-256 digests (`s1$salt$digest`), register → session → sign-out → sign-in, `/account` booking history, protected-route redirect |
 | **Dark mode (superset)** | Two-state light ↔ dark toggle — every activation visibly flips the theme; fresh profiles start in OS-following `system` mode until the first interaction; a pre-paint head script applies the stored/OS theme (and tints `theme-color`) before first paint (no flash); `@custom-variant dark` class strategy; semantic tokens flip, hero photography stays light-on-image in both themes; the browser chrome follows the resolved theme via the synced `theme-color` meta |
 | **Mobile navigation** | Portal-rendered full-screen menu overlay with focus trap, Escape/scroll-lock, and gap-based spacing (Tailwind v4 `space-y` engine trap pinned by e2e) |
+| **Gallery category filters** | Working filter row on `/gallery` (All / Editorial / Bridal / Avant-Garde / Classic / Seasonal) as an accessible `aria-pressed` toggle group over the measured five-cycle category model — active chip white-on-ink, grid filters live |
 | **SEO + PWA** | Per-route title/description/OG/canonical/robots contract (soft-404s and private surfaces ship `noindex, follow`; the `/home` alias and case variants canonicalize to the sitemap's lowercase form), JSON-LD (`NailSalon` with `openingHoursSpecification` + `sameAs`, `WebSite`), complete social-card meta (og:image dimensions/alt, twitter alt, og:locale), generated sitemap with git-derived `lastmod` + robots, web manifest + icons incl. apple-touch + maskable |
 | **Zero-server persistence** | Browser-only demo store (`localStorage`, `aurelia:v1` namespace) + a zero-dependency `node:sqlite` tooling contract that materializes `db/custom.db` |
 
 ## Architecture
 
-**Single-file SPA**: `vite build` emits one self-contained `dist/index.html` (~442 KB, ~117.4 KB gzip) via `vite-plugin-singlefile` — no server runtime, deployable to any static host.
+**Single-file SPA**: `vite build` emits one self-contained `dist/index.html` (~446 KB, ~118.4 KB gzip) via `vite-plugin-singlefile` — no server runtime, deployable to any static host.
 
 | Layer | Technology | Version | Purpose |
 |---|---|---|---|
@@ -32,8 +33,8 @@ A production-grade marketing + booking SPA for a luxury nail studio — a visual
 | Styling | Tailwind CSS | 4.3 (CSS-first) | `@theme inline` tokens, no config file |
 | Routing | Custom history router (`src/lib/router.tsx`) | — | `pushState`-based, ~107 LOC, case-insensitive matching |
 | State | React Context + `localStorage` (`src/lib/store.tsx`) | — | Session, bookings, toasts, theme |
-| Unit tests | Vitest | 4.1 | 89 tests, node env |
-| E2E tests | Playwright | 1.64 | 194 tests, chromium + iPhone-14 profiles, against `vite preview` |
+| Unit tests | Vitest | 4.1 | 95 tests, node env |
+| E2E tests | Playwright | 1.64 | 212 tests, chromium + iPhone-14 profiles, against `vite preview` |
 | Hosted CI | GitHub Actions | — | `verify` + full e2e on every push/PR to `main` (`.github/workflows/ci.yml`) |
 | DB tooling | `node:sqlite` (`scripts/db-setup.mjs`) | Node ≥ 22.5 | Materializes `DATABASE_URL` as a real SQLite file |
 
@@ -85,14 +86,14 @@ npm run db:setup              # materialize + seed db/custom.db (needs Node ≥ 
 npm run dev                   # vite dev server on http://localhost:5173
 ```
 
-**Verify setup** — the full gate chain (what CI would run; this repo has no hosted CI):
+**Verify setup** — the full gate chain (identical to what hosted CI runs on every push/PR to `main`):
 
 ```bash
 npm run verify   # typecheck && lint && test (unit) && build
-npm run e2e      # 194 Playwright tests against the production preview (builds first)
+npm run e2e      # 212 Playwright tests against the production preview (builds first)
 ```
 
-Expected: typecheck silent · eslint silent · `89 passed` · `dist/index.html ~442 kB` · `194 passed`. Every push/PR to `main` runs the same chain in GitHub Actions.
+Expected: typecheck silent · eslint silent · `95 passed` · `dist/index.html ~446 kB` · `212 passed`. Every push/PR to `main` runs the same chain in GitHub Actions.
 
 **Demo accounts** (seeded in `src/data/studio.ts`, digests verified by unit tests):
 
@@ -117,8 +118,8 @@ npx playwright test tests/e2e/mobile-navigation.spec.ts        # single spec
 npx playwright test --project=mobile                           # iPhone-14 profile only
 ```
 
-- **Unit (89)** — booking validation seam, **theme contract (`resolveTheme` + the two-state `nextThemeMode` with the no-op impossibility invariant)**, password hash round-trip **including demo-seed digest verification**, SEO route map (**/home alias canonical + case-variant lowercase canonical + soft-404/private-surface noindex robots**), db-path resolution contract, db-scripts containment audit **+ the R6 in-place schema upgrade path**, sitemap projection (**git-derived `lastmod` contract**), **catalog contract (measured prices verbatim, add-on list, booking-whitelist exclusion)**.
-- **E2E (194)** — smoke, **mobile navigation (the Tailwind v4 `space-y` regression pin + measured 30px links + `aria-current`)**, booking flow (validation → confirmation → admin surface), auth flow, **dark mode (first-click flip + pre-paint script + token values + persistence + theme-color sync)**, visual parity (computed-style assertions on stable selectors **+ measured nav/eyebrow geometry + active-route gold ink + 48px rose-accent quote + About h1 + services pricing/add-on band**), a11y (axe + structure), SEO head (**per-route titles, canonical/og:url, JSON-LD, social-card meta, alias + case-variant canonical, soft-404/private-surface noindex, served robots/sitemap artifacts**), PWA manifest, password hash round-trip. Desktop Chrome + iPhone-14 (chromium engine) profiles; e2e runs against the production build, never the dev server.
+- **Unit (95)** — booking validation seam, **theme contract (`resolveTheme` + the two-state `nextThemeMode` with the no-op impossibility invariant)**, password hash round-trip **including demo-seed digest verification**, SEO route map (**/home alias canonical + case-variant lowercase canonical + soft-404/private-surface noindex robots**), db-path resolution contract, db-scripts containment audit **+ the R6 in-place schema upgrade path**, sitemap projection (**git-derived `lastmod` contract**), catalog contract (measured prices verbatim, add-on list, booking-whitelist exclusion), **content-parity contract (R7: measured tagline, the five-cycle category map, experience paragraphs, attribution format, the measured About pack)**.
+- **E2E (212)** — smoke, **mobile navigation (the Tailwind v4 `space-y` regression pin + measured 30px links + `aria-current`)**, booking flow (validation → confirmation → admin surface), auth flow, **dark mode (first-click flip + pre-paint script + token values + persistence + theme-color sync)**, visual parity (computed-style assertions on stable selectors **+ measured nav/eyebrow geometry + active-route gold ink + 48px rose-accent quote + About h1 + services pricing/add-on band + gallery filter row + R7 content pins**), a11y (axe + structure), SEO head (**per-route titles, canonical/og:url, JSON-LD, social-card meta, alias + case-variant canonical, soft-404/private-surface noindex, served robots/sitemap artifacts**), PWA manifest, password hash round-trip. Desktop Chrome + iPhone-14 (chromium engine) profiles; e2e runs against the production build, never the dev server.
 - `playwright.config.ts` auto-starts its own `vite preview` — no manual server management.
 
 ## Design System
@@ -147,11 +148,12 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 | [`docs/remediation-plan-aurelia-r4.md`](docs/remediation-plan-aurelia-r4.md) | Review-round R4: R3 validation + canonical case-variant consolidation, private-surface noindex, theme-color sync, doc-drift sweep |
 | [`docs/remediation-plan-aurelia-r5.md`](docs/remediation-plan-aurelia-r5.md) | Review-round R5: R4 validation + live regression verification of every fix; auth-page platform-chrome divergence documented in the deviations ledger (R5-01) |
 | [`docs/remediation-plan-aurelia-r6.md`](docs/remediation-plan-aurelia-r6.md) | Review-round R6: reference-drift catch-up (services pricing + Add-On band), measured typography-geometry normalization (eyebrow/nav/menu/quote/About), active-route `aria-current` + AA gold-ink, band accent tokens, GitHub Actions CI |
+| [`docs/remediation-plan-aurelia-r7.md`](docs/remediation-plan-aurelia-r7.md) | Review-round R7: second reference-drift wave — hero tagline, **gallery category filters + the measured five-cycle (Seasonal)**, About-page rebuild (bio/stats/philosophy band/featured-in), experience-paragraph + attribution + quote-glyph + gallery-intro catch-up |
 | [`Project_Architecture_Document.md`](Project_Architecture_Document.md) | Full engineering reference: ADRs, topology, layer model, data architecture, security |
 | [`AGENTS.md`](AGENTS.md) | Agent rulebook: commands, conventions, framework traps |
 | [`CLAUDE.md`](CLAUDE.md) | Session-playbook for AI coding agents |
 | [`docs/Tailwind-V4-Validation-Report.md`](docs/Tailwind-V4-Validation-Report.md) | The five v4 engine traps and the validated remediation patterns |
-| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round comparison sets (14–17 R1, 18–20 R2, 21–23 R3, 24–26 R4, 27–29 R5, 30–33 R6 — R6 shifts the baseline heights by design); prior-project captures under `legacy-homenest/` |
+| [`docs/screenshots/`](docs/screenshots/) | Dev-server capture sweep (13 verified PNGs) + review-round comparison sets (14–17 R1, 18–20 R2, 21–23 R3, 24–26 R4, 27–29 R5, 30–33 R6, 34–38 R7 — R7 shifts the baseline heights again: filter row + About rebuild); prior-project captures under `legacy-homenest/` |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Static-host deployment notes |
 | [`docs/how-to-git-push-using-ssh-wrapper_SKILL.md`](docs/how-to-git-push-using-ssh-wrapper_SKILL.md) | Deploy-key push procedure (`ssh_git_wrapper_v3.py`) |
 
@@ -172,6 +174,6 @@ Typography: **Cormorant Garamond** display (`font-display`) / **Inter** body (`f
 
 ## Status
 
-Complete and green as of 2026-10-20 (review round R6): reference investigation ✓ · full clone implemented ✓ · **89/89 unit ✓ · 194/194 e2e ✓** · typecheck/lint/build ✓ · theme switching remediated (R2-01) + axe 4.14 Label-in-Name fixed (R2-02) ✓ · sitemap `lastmod` + SEO hardening (R3) ✓ · R4 hardening: canonical case-variant consolidation, private-surface noindex, theme-color follows the resolved theme ✓ · R5 validation: every R4 fix re-verified live; auth-page platform-chrome divergence documented ✓ · **R6: reference-drift catch-up (services pricing + Add-On band), measured typography normalization (eyebrow 14px / nav 0.1em / menu 30px / quote 48px + rose accent / About h1 60px), active-route `aria-current` + AA gold-ink, band accent tokens, GitHub Actions CI** ✓ · capture sweeps through R6 (33 PNGs) ✓ · all four root docs + distilled skill + DEPLOYMENT guide generated ✓.
+Complete and green as of 2026-10-20 (review round R7): reference investigation ✓ · full clone implemented ✓ · **95/95 unit ✓ · 212/212 e2e ✓** · typecheck/lint/build ✓ · theme switching remediated (R2-01) + axe 4.14 Label-in-Name fixed (R2-02) ✓ · sitemap `lastmod` + SEO hardening (R3) ✓ · R4 hardening: canonical case-variant consolidation, private-surface noindex, theme-color follows the resolved theme ✓ · R5 validation: every R4 fix re-verified live; auth-page platform-chrome divergence documented ✓ · R6: reference-drift catch-up (services pricing + Add-On band), measured typography normalization, active-route `aria-current` + AA gold-ink, band accent tokens, GitHub Actions CI (first run green) ✓ · **R7: second reference-drift catch-up — hero tagline, gallery category filters + measured five-cycle (Seasonal), About-page rebuild (bio + stats + philosophy band + featured-in + measured CTA), experience paragraphs, attribution format, quote glyphs, gallery intro** ✓ · capture sweeps through R7 (38 PNGs) ✓ · all four root docs + distilled skill + DEPLOYMENT guide generated ✓.
 
 No license file is bundled — all rights reserved by the repository owner.

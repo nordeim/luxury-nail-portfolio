@@ -1,7 +1,7 @@
 # Deployment Guide
 
 Aurelia Nail Artistry ships as a **single-file Vite SPA** (`dist/index.html`,
-~442 KB / ~117.4 KB gzip) with zero server and zero external services — one
+~446 KB / ~118.4 KB gzip) with zero server and zero external services — one
 static artifact plus its asset folder. This guide covers the supported
 production paths and the environment contract.
 
@@ -161,7 +161,7 @@ as a merge gate.
 ## 8. Verification checklist
 
 ```bash
-npm run verify && npm run e2e    # typecheck + lint + 89 unit + build + 194 E2E runs
+npm run verify && npm run e2e    # typecheck + lint + 95 unit + build + 212 E2E runs
 curl -s https://your-host/robots.txt        # admin disallowed + sitemap pointer
 curl -s https://your-host/sitemap.xml       # 7 static URLs at your origin, each with a W3C <lastmod>
 curl -s https://your-host/manifest.webmanifest # valid PWA manifest incl. the maskable icon entry
@@ -174,7 +174,9 @@ curl -s -o /dev/null -w "%{http_code}" https://your-host/gallery   # 200 — SPA
 
 In a browser: load the home page (hero renders in the resolved theme with
 no light flash for dark users), open a deep link (`/gallery`) after a hard
-refresh (SPA fallback works), submit a booking request and see the
+refresh (SPA fallback works; the category filter row filters the grid),
+visit `/about` (bio, stats, philosophy band, featured-in strip render),
+submit a booking request and see the
 "Request Received" confirmation, and check `document.title` changes per
 route (head contract live).
 

@@ -204,6 +204,133 @@ test.describe("desktop parity @1920x1080", () => {
       await expect(row).toContainText(duration);
     }
   });
+
+  test("gallery filter group renders the six measured chips with ALL active (R7-02)", async ({ page }) => {
+    // R7-02: the reference ships working category filters between the intro
+    // and the grid (measured: active = white on #1a1a1a, inactive = ink on
+    // transparent). The clone implements them as an aria-pressed toggle group.
+    await page.goto("/gallery");
+    const group = page.getByRole("group", { name: "Filter works by category" });
+    const chips = group.getByRole("button");
+    await expect(chips).toHaveCount(6);
+    const all = group.getByRole("button", { name: "All", exact: true });
+    await expect(all).toHaveAttribute("aria-pressed", "true");
+    await expect(all).toHaveCSS("background-color", "rgb(26, 26, 26)");
+    await expect(all).toHaveCSS("color", "rgb(255, 255, 255)");
+    const bridal = group.getByRole("button", { name: "Bridal", exact: true });
+    await expect(bridal).toHaveAttribute("aria-pressed", "false");
+    await expect(bridal).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  });
+
+  test("gallery BRIDAL filter shows exactly the three measured works (R7-02)", async ({ page }) => {
+    // Reference probe 2026-10-20: BRIDAL → Midnight Garden, Ivory Dreams,
+    // Rose Petal. Name-invariant matching (F2): the DOM text is title-case.
+    await page.goto("/gallery");
+    const group = page.getByRole("group", { name: "Filter works by category" });
+    await group.getByRole("button", { name: /bridal/i }).click();
+    await expect(page.locator("figure")).toHaveCount(3);
+    for (const name of ["Midnight Garden", "Ivory Dreams", "Rose Petal"]) {
+      await expect(page.locator("figcaption").getByText(name)).toBeVisible();
+    }
+    await expect(page.locator("figcaption").getByText("Pearl Essence")).toBeHidden();
+    await expect(group.getByRole("button", { name: /bridal/i })).toHaveAttribute("aria-pressed", "true");
+    await expect(group.getByRole("button", { name: "All", exact: true })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  test("gallery SEASONAL filter shows the two measured works (R7-03)", async ({ page }) => {
+    // R7-03: Seasonal exists in the reference's five-cycle — Winter Frost
+    // and Autumn Ember. The clone previously had no seasonal category.
+    await page.goto("/gallery");
+    const group = page.getByRole("group", { name: "Filter works by category" });
+    await group.getByRole("button", { name: /seasonal/i }).click();
+    await expect(page.locator("figure")).toHaveCount(2);
+    for (const name of ["Winter Frost", "Autumn Ember"]) {
+      await expect(page.locator("figcaption").getByText(name)).toBeVisible();
+    }
+  });
+
+  test("gallery ALL restores all twelve works (R7-02)", async ({ page }) => {
+    await page.goto("/gallery");
+    const group = page.getByRole("group", { name: "Filter works by category" });
+    // The measured five-cycle distributes unevenly: avant-garde owns exactly
+    // two works (Chrome Dreams, Obsidian).
+    await group.getByRole("button", { name: /avant-garde/i }).click();
+    await expect(page.locator("figure")).toHaveCount(2);
+    await group.getByRole("button", { name: "All", exact: true }).click();
+    await expect(page.locator("figure")).toHaveCount(12);
+  });
+
+  test("gallery captions carry the measured five-cycle categories (R7-03)", async ({ page }) => {
+    // R7-03: the R1 4-cycle inference missed Seasonal — eight works were
+    // miscategorized. Pinned on the two most visible corrections.
+    await page.goto("/gallery");
+    const winter = page.locator("figure").filter({ hasText: "Winter Frost" });
+    await expect(winter).toContainText("Seasonal");
+    const golden = page.locator("figure").filter({ hasText: "Golden Hour" });
+    await expect(golden).toContainText("Editorial");
+  });
+
+  test("hero carries the measured tagline (R7-01)", async ({ page }) => {
+    // R7-01: reference drift — "…for the extraordinary." replaced the
+    // R1-Verified "…for the modern icon."
+    await page.goto("/");
+    await expect(page.getByText(/Bespoke nail designs for the extraordinary\./)).toBeVisible();
+  });
+
+  test("home carries the measured experience paragraphs and attribution (R7-05/06)", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByText(/From the initial consultation to the final design, every detail is thoughtfully considered/),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/blend traditional techniques with contemporary artistry, creating designs that are as unique as you are\./),
+    ).toBeVisible();
+    // R7-06: em-dash prefix + comma format (uppercase is CSS-level; the DOM
+    // text keeps title case).
+    await expect(page.getByText("— Aurelia Chen, Founder & Artist")).toBeVisible();
+  });
+
+  test("about page renders the measured bio, stats, band, values, featured-in and CTA (R7-04)", async ({ page }) => {
+    await page.goto("/about");
+    // Eyebrow: "The Artist" (was "Founder & Artist").
+    await expect(page.getByText("The Artist", { exact: true })).toBeVisible();
+    // Bio + in-column quote.
+    await expect(page.getByText(/With over a decade of experience in luxury nail artistry/)).toBeVisible();
+    await expect(
+      page.getByText(/Trained in both Paris and Tokyo, her work has graced the pages of Vogue/),
+    ).toBeVisible();
+    await expect(page.getByText(/I believe nails are the ultimate accessory\./)).toBeVisible();
+    // Stats row: 3 numbers with their measured labels.
+    for (const [value, label] of [
+      ["12+", "Years Experience"],
+      ["5K+", "Happy Clients"],
+      ["50+", "Editorial Features"],
+    ] as const) {
+      const stat = page.locator("ul > li").filter({ hasText: value }).getByText(label, { exact: true });
+      await expect(stat).toBeVisible();
+    }
+    // Philosophy band with the rose accent on "wearable art".
+    const band = page.locator("section[aria-labelledby='about-philosophy-title']");
+    await expect(band).toHaveCSS("background-color", "rgb(26, 26, 26)");
+    await expect(band.getByText("The Philosophy", { exact: true })).toBeVisible();
+    await expect(band.locator("span.text-band-accent")).toHaveText("wearable art");
+    await expect(
+      band.getByText(/Every appointment at Aurelia begins with understanding—your style, your story, your vision\./),
+    ).toBeVisible();
+    // Values carry the measured bodies.
+    await expect(page.getByText("Every stroke, every detail is executed with unwavering precision and care.")).toBeVisible();
+    // Featured-in strip.
+    await expect(page.getByText("As Featured In", { exact: true })).toBeVisible();
+    for (const name of ["Vogue", "Elle", "Harper's Bazaar", "Allure", "Glamour"]) {
+      await expect(page.getByText(name, { exact: true })).toBeVisible();
+    }
+    // CTA support + measured button label.
+    await expect(page.getByText("Ready to bring your nail vision to life? I'd love to hear from you.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Book a Consultation" })).toBeVisible();
+  });
 });
 
 test.describe("mobile parity @390x844", () => {
@@ -269,5 +396,19 @@ test.describe("mobile parity @390x844", () => {
       "aria-current",
       "page",
     );
+  });
+
+  test("gallery filter chips wrap on mobile without horizontal overflow (R7-02)", async ({ page }) => {
+    // Reference probe 2026-10-20: at 390px the six chips wrap to three rows
+    // with no horizontal overflow — the clone's flex-wrap row must hold too.
+    await page.goto("/gallery");
+    const group = page.getByRole("group", { name: "Filter works by category" });
+    await expect(group.getByRole("button")).toHaveCount(6);
+    const box = await group.boundingBox();
+    expect(box?.height ?? 0).toBeGreaterThan(80); // wraps past a single chip row
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 });

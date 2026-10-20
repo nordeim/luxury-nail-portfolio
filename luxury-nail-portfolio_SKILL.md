@@ -9,7 +9,7 @@ description: >-
   and lessons learned. Use when extending, debugging, onboarding, or replicating
   this codebase.
 version: 1.0.0
-last_updated: 2026-10-20
+last_updated: 2026-10-21
 project_state: >-
   COMPLETE AND GREEN — typecheck ✓ lint ✓ 95/95 unit ✓ 214/214 e2e ✓
   production build (446 KB single file) ✓ review rounds R1-R12 executed (theme
@@ -47,8 +47,16 @@ project_state: >-
   (13/13), operator-credential login re-verified, F1 post-reset
   probe-reconstruction record (four first-pass FAILs root-caused to probe
   artifacts: CTA role, catalog-name provenance, theme-color sync path,
-  menu-footer scope) ✓ capture sweeps
-  through R13 (56 verified PNGs) ✓ pushed to origin/main.
+  menu-footer scope); R14: full validation round (sixth consecutive
+  zero-findings round) — all R2–R13 pins re-verified live via a scripted
+  34/34-check battery, reference re-extracted via the agent-browser CLI
+  with no drift (13/13 incl. operator-credential login → redirect to /),
+  the R13 CI re-queue closed via the badge endpoint ("CI - passing" on
+  main), F1/F2/F3 probe/display-method records (output-pipeline `[m`
+  byte-pair stripping disproven via parser reads; short-SHA head_sha
+  filter needs the full 40-char SHA; placeholder/canonical/role-locator
+  probe fixes) ✓ capture sweeps
+  through R14 (59 verified PNGs) ✓ pushed to origin/main.
 ---
 
 # Aurelia Nail Artistry — Codebase Engineering SKILL

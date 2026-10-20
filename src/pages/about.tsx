@@ -67,7 +67,7 @@ export function AboutPage() {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-7xl px-6 py-24 lg:px-10 lg:py-32">
+      <div className="mx-auto w-full max-w-7xl px-6 pt-24 pb-0 lg:px-10 lg:pt-32 lg:pb-0">
         <section aria-labelledby="values-title">
           <p className="eyebrow text-muted-foreground">What Guides Us</p>
           <h2 id="values-title" className="mt-4 font-display text-4xl font-normal">
@@ -105,9 +105,13 @@ export function AboutPage() {
           />
         </section>
 
-        <section aria-labelledby="featured-title" className="mt-24">
-          <p className="eyebrow text-muted-foreground">As Featured In</p>
-          <ul className="mt-8 flex flex-wrap items-baseline gap-x-10 gap-y-4">
+        {/* R8-01: the reference renders the strip as a centered hairline-bordered
+            band spanning the content container (border-y py-12, centered eyebrow,
+            justify-center items-center gap-12 names row). Name color keeps the
+            AA-corrected ink token — the reference's ink/30 fails AA (~2.2:1). */}
+        <section aria-labelledby="featured-title" className="mt-24 border-y border-hairline py-12">
+          <p className="eyebrow text-center text-muted-foreground">As Featured In</p>
+          <ul className="mt-8 flex flex-wrap items-center justify-center gap-12">
             {ABOUT.featuredIn.map((name) => (
               <li key={name} className="font-display text-2xl text-ink-soft">
                 {name}
@@ -115,17 +119,20 @@ export function AboutPage() {
             ))}
           </ul>
         </section>
-
-        <section aria-labelledby="cta-title" className="mt-24 border border-hairline bg-surface-raised p-10">
-          <h2 id="cta-title" className="font-display text-3xl">
-            {ABOUT.ctaTitle}
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{ABOUT.ctaSupport}</p>
-          <CtaLink href="/booking" tone="dark" className="mt-8">
-            {ABOUT.cta}
-          </CtaLink>
-        </section>
       </div>
+
+      {/* R8-01: the reference CTA is an unboxed centered block (max-w-3xl,
+          text-center, h2 text-3xl md:text-4xl, 16px support) — not the R7-era
+          bordered surface-raised box. */}
+      <section aria-labelledby="cta-title" className="mx-auto w-full max-w-3xl px-6 pt-24 pb-24 text-center">
+        <h2 id="cta-title" className="font-display text-3xl font-normal md:text-4xl">
+          {ABOUT.ctaTitle}
+        </h2>
+        <p className="mt-6 text-base leading-relaxed text-muted-foreground">{ABOUT.ctaSupport}</p>
+        <CtaLink href="/booking" tone="dark" className="mt-8">
+          {ABOUT.cta}
+        </CtaLink>
+      </section>
     </>
   );
 }

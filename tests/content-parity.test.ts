@@ -65,7 +65,7 @@ const MEASURED_ABOUT = {
   ],
   studioBody:
     "Located in the heart of Los Angeles, our intimate studio space was designed to feel like a sanctuary. From the moment you step in, you're enveloped in calm, sophistication, and creative energy.",
-  featuredIn: ["Vogue", "Elle", "Harper's Bazaar", "Allure", "Glamour"],
+  featuredIn: ["VOGUE", "ELLE", "HARPER'S BAZAAR", "ALLURE", "GLAMOUR"],
   cta: "Book a Consultation",
   ctaSupport: "Ready to bring your nail vision to life? I'd love to hear from you.",
 };

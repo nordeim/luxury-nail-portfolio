@@ -161,7 +161,7 @@ as a merge gate.
 ## 8. Verification checklist
 
 ```bash
-npm run verify && npm run e2e    # typecheck + lint + 95 unit + build + 212 E2E runs
+npm run verify && npm run e2e    # typecheck + lint + 95 unit + build + 214 E2E runs
 curl -s https://your-host/robots.txt        # admin disallowed + sitemap pointer
 curl -s https://your-host/sitemap.xml       # 7 static URLs at your origin, each with a W3C <lastmod>
 curl -s https://your-host/manifest.webmanifest # valid PWA manifest incl. the maskable icon entry
@@ -175,7 +175,8 @@ curl -s -o /dev/null -w "%{http_code}" https://your-host/gallery   # 200 — SPA
 In a browser: load the home page (hero renders in the resolved theme with
 no light flash for dark users), open a deep link (`/gallery`) after a hard
 refresh (SPA fallback works; the category filter row filters the grid),
-visit `/about` (bio, stats, philosophy band, featured-in strip render),
+visit `/about` (bio, stats, philosophy band, the centered hairline-bordered
+featured-in band with uppercase names, and the unboxed centered CTA render),
 submit a booking request and see the
 "Request Received" confirmation, and check `document.title` changes per
 route (head contract live).

@@ -5,14 +5,14 @@ description: >-
   TypeScript strict + Tailwind CSS 4 single-file SPA clone (functional superset) of
   aurelia-nail-artistry-demo.base44.app. Captures the verified reference-parity
   doctrine, the Tailwind v4 trap log, the zero-server persistence contracts, the
-  test-gate architecture (95 unit + 212 e2e), anti-patterns, debugging procedures,
+  test-gate architecture (95 unit + 214 e2e), anti-patterns, debugging procedures,
   and lessons learned. Use when extending, debugging, onboarding, or replicating
   this codebase.
 version: 1.0.0
 last_updated: 2026-10-20
 project_state: >-
-  COMPLETE AND GREEN — typecheck ✓ lint ✓ 95/95 unit ✓ 212/212 e2e ✓
-  production build (446 KB single file) ✓ review rounds R1-R7 executed (theme
+  COMPLETE AND GREEN — typecheck ✓ lint ✓ 95/95 unit ✓ 214/214 e2e ✓
+  production build (446 KB single file) ✓ review rounds R1-R8 executed (theme
   switching remediated: two-state toggle + pre-paint script; axe 4.14 Label-in-Name
   fixed; sitemap lastmod + SEO hardening: soft-404 noindex, /home alias canonical,
   social-card meta, icon surfaces, JSON-LD enrichment; R4: case-variant lowercase
@@ -24,8 +24,11 @@ project_state: >-
   green); R7: second reference-drift catch-up — hero tagline, gallery category
   filters + the measured five-cycle (Seasonal), About-page rebuild (bio +
   stats + philosophy band + featured-in + measured CTA), experience
-  paragraphs, attribution format, quote glyphs, gallery intro) ✓ capture
-  sweeps through R7 (38 verified PNGs) ✓ pushed to origin/main.
+  paragraphs, attribution format, quote glyphs, gallery intro; R8: R7-surface
+  anatomy completion — featured-in strip as a centered hairline-bordered band
+  (uppercase measured names), unboxed centered CTA, caption-treatment
+  deviation ledgered, sitemap-lastmod lag note) ✓ capture sweeps through R8
+  (41 verified PNGs) ✓ pushed to origin/main.
 ---
 
 # Aurelia Nail Artistry — Codebase Engineering SKILL
@@ -97,7 +100,7 @@ Versions are read from `package.json` (exact, lockfile-pinned via `package-lock.
 | Icons | `lucide-react` | 1.59.0 | Inline SVGs; the only runtime dependency besides react/clsx/tailwind-merge |
 | Utilities | `clsx` / `tailwind-merge` | 2.1.1 / 3.7.0 | Wrapped by `src/utils/cn.ts` |
 | Unit tests | `vitest` | 4.1.12 | Node env (`vitest.config.ts`); 9 files + 1 colocated seam spec, **95 tests** |
-| E2E | `@playwright/test` | 1.64.1 | **212 tests**; projects `chromium` (Desktop Chrome) + `mobile` (iPhone 14 on chromium engine — avoids a WebKit install) |
+| E2E | `@playwright/test` | 1.64.1 | **214 tests**; projects `chromium` (Desktop Chrome) + `mobile` (iPhone 14 on chromium engine — avoids a WebKit install) |
 | A11y e2e | `@axe-core/playwright` | 4.14.0 | axe smoke on all public routes |
 | Lint | `eslint` + `typescript-eslint` + react-hooks/react-refresh | 9.39.5 / 8.71.2 | Flat config `eslint.config.js` |
 | DB tooling | `node:sqlite` (stdlib) | Node ≥ 22.5 | Zero-dep; **the SPA itself needs only Node ≥ 20** |
@@ -332,7 +335,7 @@ Numbered for reference; each entry has bitten this codebase or its predecessor.
 
 ```bash
 env -u DATABASE_URL npm run verify     # typecheck → lint → 95 unit → build
-env -u DATABASE_URL npm run e2e        # 212 e2e vs the fresh build
+env -u DATABASE_URL npm run e2e        # 214 e2e vs the fresh build
 env -u DATABASE_URL npm run db:setup   # containment audit + seed contract
 ```
 
@@ -341,7 +344,7 @@ env -u DATABASE_URL npm run db:setup   # containment audit + seed contract
 - [ ] No `space-y-*` + child `mt-*`; no backdrop-filter above fixed elements; no `*/` inside CSS comments
 - [ ] Form controls all have programmatic names; helper text outside labels
 - [ ] Viewport-sensitive e2e branches on `Open menu` visibility
-- [ ] Test totals (95/212) updated in README + AGENTS + PAD + this SKILL if moved (sweep `rg "75|166|81|178|89|194|437|439|442" docs/ *.md` to termination)
+- [ ] Test totals (95/214) updated in README + AGENTS + PAD + this SKILL if moved (sweep `rg "75|166|81|178|89|194|212|437|439|442" docs/ *.md` to termination)
 - [ ] Docs updated in the same commit for any contract change (root docs + this file)
 - [ ] Push via SSH wrapper to `main` only (key outside repo, `--dry-run` first, verify remote ref == HEAD)
 
@@ -612,8 +615,8 @@ Full records with consequences and rejected alternatives: `Project_Architecture_
 
 | Suite | Files | Tests | Highlights |
 |---|---|---|---|
-| Vitest unit | 9 (`tests/*.test.ts`) + 1 colocated | **95** | booking seam · **theme contract (`resolveTheme` + two-state `nextThemeMode` no-op invariant)** · password contract + seed integrity · seo map (**incl. /home alias + case-variant lowercase canonical + soft-404/private-surface noindex robots**) · db-path rules · db-scripts subprocess + containment (clamp + notice) **+ R6 in-place schema upgrade** · sitemap projection (**incl. git-derived lastmod contract**) · catalog (R6: measured prices verbatim + add-on list + booking-whitelist exclusion) · **content-parity (R7: measured tagline, five-cycle category map, experience paragraphs, attribution format, measured About pack)** |
-| Playwright e2e | 10 specs × 2 projects | **212** | smoke · **mobile-navigation (v4 trap pin + 30px links + aria-current)** · booking-flow (validation→confirmation→admin) · auth-flow · **dark-mode (first-click flip + pre-paint script + theme-color sync + persistence + system honoring)** · visual-parity (computed styles + R6 geometry/active-state/pricing pins **+ R7 filter-row/content pins**) · a11y-smoke (axe + structure + keyboard) · seo-head (**SPA-nav titles + JSON-LD + social-card meta + alias + case-variant canonical + soft-404/private-surface noindex**) · pwa-manifest · password-hash (round-trip, no-plaintext, session persistence) |
+| Vitest unit | 9 (`tests/*.test.ts`) + 1 colocated | **95** | booking seam · **theme contract (`resolveTheme` + two-state `nextThemeMode` no-op invariant)** · password contract + seed integrity · seo map (**incl. /home alias + case-variant lowercase canonical + soft-404/private-surface noindex robots**) · db-path rules · db-scripts subprocess + containment (clamp + notice) **+ R6 in-place schema upgrade** · sitemap projection (**incl. git-derived lastmod contract**) · catalog (R6: measured prices verbatim + add-on list + booking-whitelist exclusion) · **content-parity (R7: measured tagline, five-cycle category map, experience paragraphs, attribution format, measured About pack; R8: uppercase measured featured-in names)** |
+| Playwright e2e | 10 specs × 2 projects | **214** | smoke · **mobile-navigation (v4 trap pin + 30px links + aria-current)** · booking-flow (validation→confirmation→admin) · auth-flow · **dark-mode (first-click flip + pre-paint script + theme-color sync + persistence + system honoring)** · visual-parity (computed styles + R6 geometry/active-state/pricing pins + R7 filter-row/content pins **+ R8 featured-in-band/CTA-anatomy pin**) · a11y-smoke (axe + structure + keyboard) · seo-head (**SPA-nav titles + JSON-LD + social-card meta + alias + case-variant canonical + soft-404/private-surface noindex**) · pwa-manifest · password-hash (round-trip, no-plaintext, session persistence) |
 
 Run: `npm run test` / `npm run e2e`. Totals are quoted in README/AGENTS/PAD/this file — move them together (§9 #14).
 

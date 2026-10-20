@@ -185,6 +185,8 @@ export const STUDIO_IMAGE = "/images/studio.jpg";
 // measured bodies, a rewritten studio paragraph, an AS FEATURED IN strip and
 // a "Book a Consultation" CTA. All strings verbatim from the live extraction
 // (docs/remediation-plan-aurelia-r7.md §5).
+// R8-01: the featured-in names are the reference's uppercase DOM text
+// ("VOGUE"… — no text-transform; the bio prose above keeps sentence case).
 export const ABOUT = {
   founder: "Aurelia Chen",
   eyebrow: "The Artist",
@@ -220,7 +222,7 @@ export const ABOUT = {
   ],
   studioBody:
     "Located in the heart of Los Angeles, our intimate studio space was designed to feel like a sanctuary. From the moment you step in, you're enveloped in calm, sophistication, and creative energy.",
-  featuredIn: ["Vogue", "Elle", "Harper's Bazaar", "Allure", "Glamour"],
+  featuredIn: ["VOGUE", "ELLE", "HARPER'S BAZAAR", "ALLURE", "GLAMOUR"],
   ctaTitle: "Let's Create Together",
   ctaSupport: "Ready to bring your nail vision to life? I'd love to hear from you.",
   cta: "Book a Consultation",

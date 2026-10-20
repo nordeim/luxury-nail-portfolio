@@ -322,14 +322,37 @@ test.describe("desktop parity @1920x1080", () => {
     ).toBeVisible();
     // Values carry the measured bodies.
     await expect(page.getByText("Every stroke, every detail is executed with unwavering precision and care.")).toBeVisible();
-    // Featured-in strip.
+    // Featured-in strip — names render the measured uppercase DOM text (R8-01).
     await expect(page.getByText("As Featured In", { exact: true })).toBeVisible();
-    for (const name of ["Vogue", "Elle", "Harper's Bazaar", "Allure", "Glamour"]) {
+    for (const name of ["VOGUE", "ELLE", "HARPER'S BAZAAR", "ALLURE", "GLAMOUR"]) {
       await expect(page.getByText(name, { exact: true })).toBeVisible();
     }
     // CTA support + measured button label.
     await expect(page.getByText("Ready to bring your nail vision to life? I'd love to hear from you.")).toBeVisible();
     await expect(page.getByRole("link", { name: "Book a Consultation" })).toBeVisible();
+  });
+
+  test("featured-in strip renders the measured bordered centered band and the CTA is unboxed centered (R8-01)", async ({ page }) => {
+    await page.goto("/about");
+    // Strip: hairline border-y band, centered names row with the measured 48px gap.
+    const strip = page.locator("section[aria-labelledby='featured-title']");
+    await expect(strip).toHaveCSS("border-top-width", "1px");
+    await expect(strip).toHaveCSS("border-bottom-width", "1px");
+    const row = strip.locator("ul");
+    await expect(row).toHaveCSS("justify-content", "center");
+    await expect(row).toHaveCSS("align-items", "center");
+    await expect(row).toHaveCSS("column-gap", "48px");
+    // Names keep the AA-corrected ink token (the reference's ink/30 fails AA).
+    const name = row.getByText("VOGUE", { exact: true });
+    await expect(name).toHaveCSS("font-size", "24px");
+    // CTA: unboxed centered block, 36px h2 at desktop, 16px support.
+    const cta = page.locator("section[aria-labelledby='cta-title']");
+    await expect(cta).toHaveCSS("border-top-width", "0px");
+    await expect(cta).toHaveCSS("text-align", "center");
+    const ctaHeading = cta.getByRole("heading", { name: "Let's Create Together" });
+    await expect(ctaHeading).toHaveCSS("font-size", "36px");
+    const support = cta.getByText(/Ready to bring your nail vision to life/);
+    await expect(support).toHaveCSS("font-size", "16px");
   });
 });
 

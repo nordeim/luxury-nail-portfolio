@@ -15,7 +15,7 @@ Working agreements:
 ## 2. Six-Phase Workflow (per task)
 
 1. **ANALYZE** — read the touched seams' pins first (`src/index.css` trap comments, `AGENTS.md § Tailwind v4 traps`). Check `docs/reference-investigation.md` before changing anything user-visible.
-2. **PLAN** — name the files, the seams, and which tests move (unit 95 / e2e 212 totals).
+2. **PLAN** — name the files, the seams, and which tests move (unit 95 / e2e 214 totals).
 3. **VALIDATE** — for contract-level changes (tokens, DB resolution, auth), state the before/after contract explicitly before coding.
 4. **IMPLEMENT** — small diffs; layer rule (pages → store → seams → data → tokens) never inverts.
 5. **VERIFY** — `npm run verify` + affected e2e specs; computed-style assertions are ground truth over eyeballing.
@@ -36,7 +36,7 @@ Working agreements:
 
 ```bash
 npm run verify                                   # typecheck → lint → 95 unit → build
-npm run e2e                                      # 212 e2e vs production preview (rebuild first)
+npm run e2e                                      # 214 e2e vs production preview (rebuild first)
 npx playwright test tests/e2e/visual-parity.spec.ts   # parity gate alone
 env -u DATABASE_URL npm run db:setup             # tooling DB at <repoRoot>/db/custom.db
 ```

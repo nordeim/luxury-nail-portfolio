@@ -32,8 +32,12 @@ project_state: >-
   re-extracted with no drift, CI on the R8 head GREEN; R10: full validation
   round (second consecutive zero-findings round) — all R2–R9 pins re-verified
   live, reference re-extracted with no drift, CI on the R9 head GREEN, F1
-  capture-tooling record + lazy-image settle fix) ✓ capture sweeps
-  through R10 (47 verified PNGs) ✓ pushed to origin/main.
+  capture-tooling record + lazy-image settle fix; R11: full validation round
+  (third consecutive zero-findings round) — all R2–R10 pins re-verified live
+  via a scripted 31/31-check battery, reference re-extracted with no drift,
+  CI on the R10 head GREEN per the R10 session record, F1 probe-method
+  record: census multi-select surfaces per select) ✓ capture sweeps
+  through R11 (50 verified PNGs) ✓ pushed to origin/main.
 ---
 
 # Aurelia Nail Artistry — Codebase Engineering SKILL

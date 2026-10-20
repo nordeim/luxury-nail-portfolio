@@ -41,8 +41,14 @@ project_state: >-
   via a scripted 31/31-check battery, reference re-extracted with no drift
   (13/13 incl. the per-select booking contract), CI on the R11 head GREEN
   (run #11, verified live), F1 probe-method completion record: per-select
-  census implemented in the probe) ✓ capture sweeps
-  through R12 (53 verified PNGs) ✓ pushed to origin/main.
+  census implemented in the probe; R13: full validation round (fifth
+  consecutive zero-findings round) — all R2–R12 pins re-verified live via a
+  scripted 32/32-check battery, reference re-extracted with no drift
+  (13/13), operator-credential login re-verified, F1 post-reset
+  probe-reconstruction record (four first-pass FAILs root-caused to probe
+  artifacts: CTA role, catalog-name provenance, theme-color sync path,
+  menu-footer scope) ✓ capture sweeps
+  through R13 (56 verified PNGs) ✓ pushed to origin/main.
 ---
 
 # Aurelia Nail Artistry — Codebase Engineering SKILL
